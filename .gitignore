@@ -1,0 +1,18 @@
+syntax: glob
+
+*.egg-info
+*.pyc
+*.pyo
+.cache
+.coverage
+.installed.cfg
+.mr.developer.cfg
+bin
+build
+coverage-report
+develop-eggs
+dist
+doc/_api
+eggs
+local.cfg
+parts
