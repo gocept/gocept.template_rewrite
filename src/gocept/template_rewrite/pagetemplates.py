@@ -209,7 +209,6 @@ class CustomXMLGenerator(saxutils.XMLGenerator):
             self._write(u'>')
 
 
-
 class PTParserRewriter(object):
     """A rewriter for pagetemplates based on xml parser."""
 
@@ -230,10 +229,6 @@ class PTParserRewriter(object):
         filter = PythonExpressionFilter(parser, self.rewrite_action)
         filter.setContentHandler(output_gen)
         filter.setErrorHandler(handler.ErrorHandler())
-        # for feature in handler.all_features:
-        #     filter.setFeature(feature, False)
-        # inpsrc = xmlreader.InputSource()
-        # inpsrc.setCharacterStream(io.StringIO(input_))
         filter.parse(input_)
 
         self.output.seek(0)
