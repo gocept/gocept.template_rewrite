@@ -44,7 +44,7 @@ class FileHandler(object):
     def collect_files(self, path):
         for root, dirs, files in os.walk(path):
             for file_ in files:
-                if file_.endswith('.dtml') or file_.endswith('sql'):
+                if file_.endswith('.dtml') or file_.endswith('.sql'):
                     self.dtml_files.append(os.path.join(root, file_))
                 if file_.endswith('.pt'):
                     self.zpt_files.append(os.path.join(root, file_))
