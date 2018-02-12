@@ -55,9 +55,13 @@ class FileHandler(object):
         with open(file_, 'r') as input_file, \
                 open(file_out, 'w', encoding='utf-8') as output_file:
             log.warning('Processing %s', file_)
-            rw = rewriter(input_file.read(), self.rewrite_action)
-            output_file.write(rw())
-            self.output_files.append(file_out)
+            try:
+                rw = rewriter(input_file.read(), self.rewrite_action)
+            except UnicodeDecodeError:
+                log.error('Error', exc_info=True)
+            else:
+                output_file.write(rw())
+                self.output_files.append(file_out)
 
     def process_files(self):
         """Process all collected files."""
