@@ -81,15 +81,39 @@ def test_pagetemplates__PTParserRewriter____call____2(
     assert rw() == expected
 
 
-@pytest.mark.xfail(
-    reason='These are edge cases of invalid xml.')
 @pytest.mark.parametrize('input', [
     ('''
 <button tal:attributes="onclick string:go('view?id=${item/is}&re_url=redir')">
-</button>'''),
+        </button>'''),
     ('''
 <tal:x condition="item/desc"
        replace="structure python:item.replace('\n','<br/>')"/>'''),
+    # We have the name of an attribute occuring after it in the tag.
+    ('''
+<input type="hidden"
+       id="selector"
+       name="id"
+       tal:attributes="value request/id|nothing">'''),
+    ('''
+<input type="hidden"
+       id="selector"
+       name="id"
+       disabled
+       tal:attributes="disabled view/disabled">'''),
+    ('<!-- Support for an on-screen keyboard -->'),
+    ('''
+<!-- Support for an
+        on-screen keyboard -->'''),
+    ('''
+<p>Documents with multiple document root tags</p>
+<p>are not valid XML.</p>
+'''),
+    ('''
+<p>Can we parse entities</p>
+&nbsp;
+<p>between tags</p>
+'''),
+    ('''<p>Can we parse character references &#x34;</p> '''),
 ])
 def test_pagetemplates__PTParserRewriter____call____3(
         input, rewriter=PTParserRewriter):
