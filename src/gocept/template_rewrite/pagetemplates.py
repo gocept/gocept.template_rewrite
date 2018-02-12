@@ -161,7 +161,7 @@ class HTMLGenerator(html.parser.HTMLParser):
 
     # Overridable -- handle processing instruction
     def handle_pi(self, data):
-        raise NotImplementedError
+        self._write_raw(f'<?{data}>')
 
     def unknown_decl(self, data):
         raise NotImplementedError
