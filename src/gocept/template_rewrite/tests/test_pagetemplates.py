@@ -126,6 +126,8 @@ def test_pagetemplates__PTParserRewriter____call____2(
     # Weird casing of attributes
     '''<a href="#" onClick="window.open('ttwidget_html')">New window</a>''',
     '''<a href="#" disAbled>New window</a>''',
+    # Broken HTML without TAL statements
+    '''<count y;not any nw in x$y;1b];0b]}\n\nread:>''',
 ])
 def test_pagetemplates__PTParserRewriter____call____3(
         input, rewriter=PTParserRewriter):

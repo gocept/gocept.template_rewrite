@@ -230,15 +230,17 @@ class PTParserRewriter(object):
 
         Python expressions are passed to `rewrite_action` for processing
         """
-        output_gen = CustomXMLGenerator(self.output, encoding='utf-8')
-        parser = HTMLGenerator(convert_charrefs=False)
-        filter = PythonExpressionFilter(parser, self.rewrite_action)
-        filter.setContentHandler(output_gen)
-        filter.setErrorHandler(handler.ErrorHandler())
-        filter.parse(input_)
+        if 'tal:' in input_:
+            output_gen = CustomXMLGenerator(self.output, encoding='utf-8')
+            parser = HTMLGenerator(convert_charrefs=False)
+            filter = PythonExpressionFilter(parser, self.rewrite_action)
+            filter.setContentHandler(output_gen)
+            filter.setErrorHandler(handler.ErrorHandler())
+            filter.parse(input_)
 
-        self.output.seek(0)
-        return self.output.read()
+            self.output.seek(0)
+            return self.output.read()
+        return input_
 
     def __call__(self):
         """Return the rewrite of the parsed input."""
