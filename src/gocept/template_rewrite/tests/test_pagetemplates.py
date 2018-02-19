@@ -117,6 +117,12 @@ def test_pagetemplates__PTParserRewriter____call____2(
     ('''<p>Can we parse character references &#x34;</p> '''),
     # Processing instruction
     '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>''',
+    # It does not change string expressions
+    '''<a tal:content="string:${view/b};;3">a</a>''',
+    # It keeps the escapable characters in script tags.
+    '''<script> a <> 2 & 4 </script>''',
+    # But also keeps entity references.
+    '''<p> a &lt;&gt; 2 &amp; 4</p>''',
     # Weird casing of attributes
     '''<a href="#" onClick="window.open('ttwidget_html')">New window</a>''',
     '''<a href="#" disAbled>New window</a>''',

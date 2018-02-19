@@ -88,8 +88,12 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
         for attr, value in attrs.items():
             if name.startswith('tal:') or attr.startswith('tal:'):
                 value = value.replace(';;', DOUBLE_SEMICOLON_REPLACEMENT)
-                attrs[attr] = re.sub(
+                rewritten_value = re.sub(
                     zpt_regex, self._rewrite_expression, value)
+                # We want to undo the replacement also in cases the regex did
+                # not match.
+                attrs[attr] = rewritten_value.replace(
+                    DOUBLE_SEMICOLON_REPLACEMENT, ';;')
 
         self._cont_handler.startElement(name, attrs, ws_dict, is_short_tag)
 
@@ -151,7 +155,7 @@ class HTMLGenerator(html.parser.HTMLParser):
 
     # Overridable -- handle data
     def handle_data(self, data):
-        self._cont_handler.characters(data)
+        self._write_raw(data)
 
     # Overridable -- handle comment
     def handle_comment(self, data):
