@@ -1,0 +1,17 @@
+language: python
+sudo: false
+python:
+    - 3.6
+install:
+    - pip install setuptools zc.buildout
+    - pip install coveralls coverage
+script:
+    - coverage run bin/test --all -vc
+after_success:
+    - coveralls
+notifications:
+    email: false
+cache:
+  pip: true
+  directories:
+    - eggs/
