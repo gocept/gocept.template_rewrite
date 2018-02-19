@@ -5,6 +5,7 @@ python:
 install:
     - pip install setuptools zc.buildout
     - pip install coveralls coverage
+    - buildout install test
 script:
     - coverage run bin/test --all -vc
 after_success:
