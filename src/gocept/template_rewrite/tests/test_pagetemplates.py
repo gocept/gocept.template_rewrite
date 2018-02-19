@@ -118,6 +118,10 @@ def test_pagetemplates__PTParserRewriter____call____2(
     '''<?xml version="1.0" encoding="UTF-8" standalone="no"?>''',
     # It does not change string expressions
     '''<a tal:content="string:${view/b};;3">a</a>''',
+    # It keeps the angle brackets in script tags.
+    '''<script> a <> 2 </script>''',
+    # But also keeps entity references.
+    '''<p> a &lt;&gt; 2 </p>''',
 ])
 def test_pagetemplates__PTParserRewriter____call____3(
         input, rewriter=PTParserRewriter):

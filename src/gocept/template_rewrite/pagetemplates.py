@@ -153,7 +153,7 @@ class HTMLGenerator(html.parser.HTMLParser):
 
     # Overridable -- handle data
     def handle_data(self, data):
-        self._cont_handler.characters(data)
+        self._write_raw(data)
 
     # Overridable -- handle comment
     def handle_comment(self, data):
