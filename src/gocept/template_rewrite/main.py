@@ -5,6 +5,8 @@ import argparse
 import logging
 import os
 import os.path
+import pdb  # noqa
+
 
 log = logging.getLogger(__name__)
 
@@ -15,6 +17,8 @@ parser.add_argument('path', type=str, default='.',
                     help='path to look for *.dtml, *.pt and *.sql files')
 parser.add_argument('--keep_files', action='store_true',
                     help='keep the original files, create *.out files instead')
+parser.add_argument('-D', '--debug', action='store_true',
+                    help='enter debugger on errors')
 
 
 class FileHandler(object):
@@ -83,4 +87,9 @@ def main():
     """Act as an entry point."""
     args = parser.parse_args()
     fh = FileHandler(args.path, args.keep_files)
-    fh()
+    try:
+        fh()
+    except Exception:
+        if args.debug:
+            pdb.post_mortem()
+        raise
