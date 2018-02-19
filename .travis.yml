@@ -7,7 +7,7 @@ install:
     - pip install coveralls coverage
     - buildout install test
 script:
-    - coverage run bin/test --all -vc
+    - coverage run bin/test
 after_success:
     - coveralls
 notifications:
