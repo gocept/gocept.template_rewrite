@@ -1,57 +1,13 @@
+from xml.sax import handler, saxutils
+import collections
 import html.parser
 import io
 import re
-import collections
-from xml import sax
-from xml.sax import handler, saxutils, xmlreader
 
-zpt_regex = (r'(?P<before>python:)(?P<expr>[^;]*)(?P<end>;|\Z)')
+RE_MULTI_ATTRIBUTES = (r'(?P<before>python:)(?P<expr>[^;]*)(?P<end>;|\Z)')
+RE_SINGLE_ATTRIBUTES = (r'(?P<before>python:)(?P<expr>.*)(?P<end>)')
 
 DOUBLE_SEMICOLON_REPLACEMENT = '_)_replacement_☃_(_'
-
-
-class PTRegexRewriter(object):
-    """A Rewriter based on regex instead of pagetemplate parser."""
-
-    rewrite_action = None
-    zpt_regex = (
-        # the beginning
-        '(?P<before>'
-        # match the python: handler in tales
-        'python:)'
-        # the staet of the actual python expression
-        '(?P<expr>'
-        # We can have anything except double quotes and semicolon which would
-        # end the expression.
-        '('
-        '[^";]'
-        # or
-        '|'
-        # we have two semicolon as this will escape one.
-        '((;(?=;))(;(?<=;)))'
-        # end of the expression
-        ')*)'
-        # the end, we either have a double quote in case of an attribute or a
-        # semicolon in case of a tal:define statement.
-        '(?P<end>;|")')
-
-    def __init__(self, zpt_input, rewrite_action):
-        self.raw = zpt_input
-        self.rewrite_action = rewrite_action
-
-    def _rewrite_expression(self, match_ob):
-        """Handle the match object to only expose the expression string."""
-        return ''.join([
-            match_ob.group('before'),
-            self.rewrite_action(match_ob.group('expr')),
-            match_ob.group('end'),
-        ])
-
-    def __call__(self):
-        """Return the rewrite of the parsed input."""
-        res = self.raw
-        res = re.sub(zpt_regex, self._rewrite_expression, self.raw)
-        return res
 
 
 class PythonExpressionFilter(saxutils.XMLFilterBase):
@@ -87,6 +43,13 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
         attrs = collections.OrderedDict(attrs)
         for attr, value in attrs.items():
             if name.startswith('tal:') or attr.startswith('tal:'):
+                if (name.startswith('tal:')
+                        and attr in ('attributes', 'define')):
+                    zpt_regex = RE_MULTI_ATTRIBUTES
+                elif attr in ('tal:attributes', 'tal:define'):
+                    zpt_regex = RE_MULTI_ATTRIBUTES
+                else:
+                    zpt_regex = RE_SINGLE_ATTRIBUTES
                 value = value.replace(';;', DOUBLE_SEMICOLON_REPLACEMENT)
                 rewritten_value = re.sub(
                     zpt_regex, self._rewrite_expression, value)
