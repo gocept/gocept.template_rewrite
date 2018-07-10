@@ -5,7 +5,8 @@ import io
 import re
 
 RE_MULTI_ATTRIBUTES = (r'(?P<before>python:)(?P<expr>[^;]*)(?P<end>;|\Z)')
-RE_SINGLE_ATTRIBUTES = (r'(?P<before>python:)(?P<expr>.*)(?P<end>)')
+# [\w\W] matches any symbol including newlines
+RE_SINGLE_ATTRIBUTES = (r'(?P<before>python:)(?P<expr>[\w\W]*)(?P<end>)')
 
 DOUBLE_SEMICOLON_REPLACEMENT = '_)_replacement_☃_(_'
 

@@ -126,10 +126,17 @@ def test_pagetemplates__PTParserRewriter____call____4(
 
 
 @pytest.mark.parametrize('input', [
+    '''<span tal:attributes="color python: 'green';
+                             bg_color 'red'" />''',
+    '''<span tal:define="color python: 'green';
+                         bg_color 'red'" />''',
     # semicolons are not touched in tal:content.
     '''<span tal:content="python: 'abd;adb'" />''',
     '''<span tal:content="python: 'abd;;adb'" />''',
     '''<span tal:content="python: 'abd\\';;adb'" />''',
+    # We allow newlines within brackets
+    ('''<tal:x condition="python:(a
+                  or b)">'''),
 ])
 def test_pagetemplates__PTParserRewriter____call____5(
         input):
