@@ -23,8 +23,21 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
         # here.
         pass
 
-    def _rewrite_expression(self, match_ob):
-        """Handle the match object to only expose the expression string."""
+    def _join_expression(self, value, match_ob):
+        """Re-join the matched groups."""
+        return ''.join([
+            match_ob.group('before'),
+            value,
+            match_ob.group('end'),
+        ])
+
+    def _rewrite_single_expression(self, match_ob):
+        """Handle the match object of a single expression."""
+        replaced_value = self.rewrite_action(match_ob.group('expr'))
+        return self._join_expression(replaced_value, match_ob)
+
+    def _rewrite_multi_expression(self, match_ob):
+        """Handle the match object of a multi expression."""
         # Turn the replacement to regular python after matching, before passing
         # it to the rewrite hook.
         unquoted_value = self.rewrite_action(
@@ -32,27 +45,31 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
                 DOUBLE_SEMICOLON_REPLACEMENT, ';'))
         # We have to escape the semicolon in python for pagetemplates
         quoted_value = unquoted_value.replace(';', ';;')
-        return ''.join([
-            match_ob.group('before'),
-            quoted_value,
-            match_ob.group('end'),
-        ])
+        return self._join_expression(quoted_value, match_ob)
+
+    def _is_multi_expression(self, name, attr):
+        if (name.startswith('tal:')
+                and attr in ('attributes', 'define')):
+            return True
+        elif attr in ('tal:attributes', 'tal:define'):
+            return True
+        else:
+            return False
 
     def startElement(self, name, attrs, ws_dict, is_short_tag):
         """Rewrite the attributes at the start of an element."""
         attrs = collections.OrderedDict(attrs)
         for attr, value in attrs.items():
             if name.startswith('tal:') or attr.startswith('tal:'):
-                if (name.startswith('tal:')
-                        and attr in ('attributes', 'define')):
+                if self._is_multi_expression(name, attr):
                     zpt_regex = RE_MULTI_ATTRIBUTES
-                elif attr in ('tal:attributes', 'tal:define'):
-                    zpt_regex = RE_MULTI_ATTRIBUTES
+                    rewrite_expression = self._rewrite_multi_expression
                 else:
                     zpt_regex = RE_SINGLE_ATTRIBUTES
+                    rewrite_expression = self._rewrite_single_expression
                 value = value.replace(';;', DOUBLE_SEMICOLON_REPLACEMENT)
                 rewritten_value = re.sub(
-                    zpt_regex, self._rewrite_expression, value)
+                    zpt_regex, rewrite_expression, value)
                 # We want to undo the replacement also in cases the regex did
                 # not match.
                 attrs[attr] = rewritten_value.replace(

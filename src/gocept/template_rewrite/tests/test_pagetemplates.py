@@ -98,6 +98,10 @@ def test_pagetemplates__PTParserRewriter____call____2(
     # Weird casing of attributes
     '''<a href="#" onClick="window.open('ttwidget_html')">New window</a>''',
     '''<a href="#" disAbled>New window</a>''',
+    # semicolons are not touched in tal:content.
+    '''<span tal:content="python: 'abd;adb'" />''',
+    '''<span tal:content="python: 'abd;;adb'" />''',
+    '''<span tal:content="python: 'abd\\';;adb'" />''',
     # Broken HTML without TAL statements
     '''<count y;not any nw in x$y;1b];0b]}\n\nread:>''',
 ])
@@ -111,9 +115,24 @@ def test_pagetemplates__PTParserRewriter____call____3(
 @pytest.mark.parametrize('input, expected', [
     ('<p tal:content="python: long(a)"></p>',
      '<p tal:content="python:int(a)"></p>',),
+    ('''<span tal:content="python: 'abd;adb'" />''',
+     '''<span tal:content="python: 'abd;adb'" />'''),
 ])
 def test_pagetemplates__PTParserRewriter____call____4(
         input, expected):
     """It can be used with a preconfigured 2to3 rewrite_action."""
     rw = PTParserRewriter(input, rewite_using_2to3)
     assert rw() == expected
+
+
+@pytest.mark.parametrize('input', [
+    # semicolons are not touched in tal:content.
+    '''<span tal:content="python: 'abd;adb'" />''',
+    '''<span tal:content="python: 'abd;;adb'" />''',
+    '''<span tal:content="python: 'abd\\';;adb'" />''',
+])
+def test_pagetemplates__PTParserRewriter____call____5(
+        input):
+    """It is not changed by the preconfigured 2to3 rewrite_action."""
+    rw = PTParserRewriter(input, rewite_using_2to3)
+    assert rw() == input
