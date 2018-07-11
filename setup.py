@@ -17,6 +17,7 @@ setup(
 
     extras_require={
         'test': [
+            'pytest',
             'pytest-mock',
         ],
     },
@@ -29,14 +30,14 @@ setup(
 
     author='gocept <mail@gocept.com>',
     author_email='mail@gocept.com',
-    license='ZPL 2.1',
+    license='MIT',
     url='https://github.com/gocept/gocept.template_rewrite/',
 
-    keywords='Zope DTML ZPT pagetemplates',
+    keywords='Zope DTML ZPT pagetemplates migrate Python 3',
     classifiers="""\
 License :: OSI Approved :: MIT License
-Programming Language :: Python
 Programming Language :: Python :: 3
+Programming Language :: Python :: 3 :: Only
 Programming Language :: Python :: 3.6
 Programming Language :: Python :: Implementation :: CPython
 """[:-1].split('\n'),
