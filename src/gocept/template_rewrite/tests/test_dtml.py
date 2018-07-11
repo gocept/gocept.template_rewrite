@@ -112,7 +112,7 @@ let_expectation = r"""
 def test_dtml__DTMLRegexRewriter____call____1():
     """It returns the initial template from the identity function."""
     rw = gocept.template_rewrite.dtml.DTMLRegexRewriter(
-        DTML_VAR_EXPRESSION, lambda x: x)
+        DTML_VAR_EXPRESSION, lambda x, **kw: x)
     result = rw()
 
     assert result == DTML_VAR_EXPRESSION
@@ -121,7 +121,7 @@ def test_dtml__DTMLRegexRewriter____call____1():
 def test_dtml__DTMLRegexRewriter____call____2():
     """It rewrites the expression values of the dtml."""
     rw = gocept.template_rewrite.dtml.DTMLRegexRewriter(
-        DTML_VAR_EXPRESSION, lambda x: "rewritten")
+        DTML_VAR_EXPRESSION, lambda x, **kw: "rewritten")
     result = rw()
 
     expected = """
@@ -160,5 +160,5 @@ def test_dtml__DTMLRegexRewriter____call____2():
 def test_dtml__DTMLRegexRewriter____call____3(input, expected):
     """It rewrites the expression values of the dtml."""
     rw = gocept.template_rewrite.dtml.DTMLRegexRewriter(
-        input, lambda x: "rewritten")
+        input, lambda x, **kw: "rewritten")
     assert rw() == expected

@@ -65,7 +65,7 @@ class DTMLRegexRewriter(object):
 
     rewrite_action = None
 
-    def __init__(self, dtml_input, rewrite_action):
+    def __init__(self, dtml_input, rewrite_action, *args, **kw):
         self.raw = dtml_input
         self.rewrite_action = rewrite_action
 
@@ -73,7 +73,8 @@ class DTMLRegexRewriter(object):
         """Handle the match object to only expose the expression string."""
         return ''.join([
             match_ob.group('before'),
-            self.rewrite_action(match_ob.group('expr')),
+            self.rewrite_action(match_ob.group('expr'),
+                                lineno=None, tag=None, filename=None),
             match_ob.group('end'),
         ])
 

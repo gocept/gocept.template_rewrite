@@ -1,0 +1,2 @@
+<div tal:define="a python:b
+                          or c" />

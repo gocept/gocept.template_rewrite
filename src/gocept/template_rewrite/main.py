@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(
     description='Rewrite Python expressions in DTML and ZPT template files.')
 parser.add_argument('path', type=str, default='.',
                     help='path to look for *.dtml, *.pt and *.sql files')
-parser.add_argument('--keep_files', action='store_true',
+parser.add_argument('--keep-files', action='store_true',
                     help='keep the original files, create *.out files instead')
 parser.add_argument('-D', '--debug', action='store_true',
                     help='enter debugger on errors')
@@ -84,9 +84,9 @@ class FileHandler(object):
             os.rename(file_, file_[:-4])
 
 
-def main():
+def main(args=None):
     """Act as an entry point."""
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     fh = FileHandler(args.path, args.keep_files)
     try:
         fh()

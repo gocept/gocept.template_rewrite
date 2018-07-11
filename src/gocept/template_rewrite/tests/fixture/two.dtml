@@ -1,0 +1,3 @@
+<dtml-if expr="a.has_key('x')">
+    yes
+</dtml-if>
