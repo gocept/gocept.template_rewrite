@@ -10,7 +10,7 @@ tool = lib2to3.refactor.RefactoringTool(
     lib2to3.refactor.get_fixers_from_package("lib2to3.fixes"))
 
 
-def rewite_using_2to3(src):
+def rewrite_using_2to3(src):
     """Rewrite a python expression using 2to3."""
     consolidated_src = src.lstrip()
     try:

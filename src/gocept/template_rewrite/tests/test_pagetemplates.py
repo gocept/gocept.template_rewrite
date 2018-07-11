@@ -1,6 +1,6 @@
 import pytest
 from gocept.template_rewrite.pagetemplates import PTParserRewriter
-from gocept.template_rewrite.lib2to3 import rewite_using_2to3
+from gocept.template_rewrite.lib2to3 import rewrite_using_2to3
 
 
 @pytest.mark.parametrize('input, expected', [
@@ -121,7 +121,7 @@ def test_pagetemplates__PTParserRewriter____call____3(
 def test_pagetemplates__PTParserRewriter____call____4(
         input, expected):
     """It can be used with a preconfigured 2to3 rewrite_action."""
-    rw = PTParserRewriter(input, rewite_using_2to3)
+    rw = PTParserRewriter(input, rewrite_using_2to3)
     assert rw() == expected
 
 
@@ -141,5 +141,5 @@ def test_pagetemplates__PTParserRewriter____call____4(
 def test_pagetemplates__PTParserRewriter____call____5(
         input):
     """It is not changed by the preconfigured 2to3 rewrite_action."""
-    rw = PTParserRewriter(input, rewite_using_2to3)
+    rw = PTParserRewriter(input, rewrite_using_2to3)
     assert rw() == input

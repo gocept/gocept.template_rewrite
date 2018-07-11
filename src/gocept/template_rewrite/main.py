@@ -1,5 +1,5 @@
 from gocept.template_rewrite.dtml import DTMLRegexRewriter
-from gocept.template_rewrite.lib2to3 import rewite_using_2to3
+from gocept.template_rewrite.lib2to3 import rewrite_using_2to3
 from gocept.template_rewrite.pagetemplates import PTParserRewriter
 import argparse
 import logging
@@ -29,11 +29,11 @@ class FileHandler(object):
     output_files = []
 
     def _rewrite_action(self, input_string):
-        """Use the default action: `rewite_using_2to3`.
+        """Use the default action: `rewrite_using_2to3`.
 
         Can be overwritten at __init__.
         """
-        return rewite_using_2to3(input_string)
+        return rewrite_using_2to3(input_string)
 
     def __init__(self, path, keep_files=False, rewrite_action=None):
         self.path = path
