@@ -19,7 +19,8 @@ def files(tmpdir):
 def test_main__main__1(files, caplog):
     """It converts all files in the given directory."""
     main([str(files)])
-    assert ['broken.pt',
+    assert ['README.txt',
+            'broken.pt',
             'one.pt',
             'two.dtml'] == sorted(x.name for x in files.iterdir())
     assert caplog.text.count('Processing') == 3
@@ -30,6 +31,7 @@ def test_main__main__2(files):
     """It does not touch the original files on `--keep-files`."""
     main([str(files), '--keep-files'])
     assert [
+        'README.txt',
         'broken.pt',
         'broken.pt.out',
         'one.pt',
@@ -47,7 +49,8 @@ def test_main__main__2(files):
 def test_main__main__3(files, caplog):
     """It does only report errors on `--only-check-syntax`."""
     main([str(files), '--only-check-syntax'])
-    assert ['broken.pt',
+    assert ['README.txt',
+            'broken.pt',
             'one.pt',
             'two.dtml'] == sorted([x.name for x in files.iterdir()])
     assert caplog.text.count('Processing') == 0
