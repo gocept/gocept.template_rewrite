@@ -57,3 +57,10 @@ def test_main__main__3(files, caplog):
         source = file.read_text()
         dest = files.joinpath(file.name).read_text()
         assert dest == source
+
+
+def test_main__main__4(files, caplog):
+    """It accepts a list of files as argument."""
+    main([str(files / 'broken.pt'), str(files / 'one.pt')])
+    assert caplog.text.count('Processing') == 2
+    assert caplog.text.count('Parsing error') == 1

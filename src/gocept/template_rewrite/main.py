@@ -5,6 +5,7 @@ import argparse
 import logging
 import os
 import os.path
+import pathlib
 import pdb  # noqa
 
 
@@ -13,8 +14,9 @@ log = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(
     description='Rewrite Python expressions in DTML and ZPT template files.')
-parser.add_argument('path', type=str, default='.',
-                    help='path to look for *.dtml, *.pt and *.sql files')
+parser.add_argument('paths', type=str, nargs='+', metavar='path',
+                    help='paths of files which should be rewritten or '
+                    'directories containing such files')
 parser.add_argument('--keep-files', action='store_true',
                     help='keep the original files, create *.out files instead')
 parser.add_argument('--only-check-syntax', action='store_true',
@@ -34,12 +36,12 @@ class FileHandler(object):
         """
         return rewrite_using_2to3(input_string, *args, **kwargs)
 
-    def __init__(self, path, keep_files=False, only_check_syntax=False,
+    def __init__(self, paths, keep_files=False, only_check_syntax=False,
                  rewrite_action=None):
         self.dtml_files = []
         self.zpt_files = []
         self.output_files = []
-        self.path = path
+        self.paths = paths
         if rewrite_action:
             self.rewrite_action = rewrite_action
         else:
@@ -48,36 +50,41 @@ class FileHandler(object):
         self.only_check_syntax = only_check_syntax
 
     def __call__(self):
-        self.collect_files(self.path)
+        for path in self.paths:
+            self.collect_files(pathlib.Path(path))
         self.process_files()
         if not self.keep_files and not self.only_check_syntax:
             self.replace_files()
 
     def collect_files(self, path):
-        for root, dirs, files in os.walk(path):
-            for file_ in files:
-                if file_.endswith('.dtml') or file_.endswith('.sql'):
-                    self.dtml_files.append(os.path.join(root, file_))
-                if file_.endswith('.pt'):
-                    self.zpt_files.append(os.path.join(root, file_))
+        if path.is_dir():
+            for root, dirs, files in os.walk(str(path)):
+                for file_ in files:
+                    self._classify_file(pathlib.Path(root, file_))
+        else:
+            self._classify_file(path)
 
-    def _process_file(self, file_, rewriter):
+    def _classify_file(self, path):
+        if path.suffix in ('.dtml', '.sql'):
+            self.dtml_files.append(path)
+        if path.suffix == '.pt':
+            self.zpt_files.append(path)
+
+    def _process_file(self, path, rewriter):
         """Process one file."""
-        with open(file_, 'r') as input_file:
+        if not self.only_check_syntax:
+            log.warning('Processing %s', path)
+        try:
+            rw = rewriter(
+                path.read_text(), self.rewrite_action, filename=str(path))
+        except UnicodeDecodeError:
+            log.error('Error', exc_info=True)
+        else:
+            result = rw()
             if not self.only_check_syntax:
-                log.warning('Processing %s', file_)
-            try:
-                rw = rewriter(
-                    input_file.read(), self.rewrite_action, filename=file_)
-            except UnicodeDecodeError:
-                log.error('Error', exc_info=True)
-            else:
-                result = rw()
-                if not self.only_check_syntax:
-                    file_out = file_ + '.out'
-                    with open(file_out, 'w', encoding='utf-8') as output_file:
-                        output_file.write(result)
-                        self.output_files.append(file_out)
+                file_out = pathlib.Path(str(path) + '.out')
+                file_out.write_text(result, encoding='utf-8')
+                self.output_files.append(file_out)
 
     def process_files(self):
         """Process all collected files."""
@@ -87,14 +94,14 @@ class FileHandler(object):
             self._process_file(file_, PTParserRewriter)
 
     def replace_files(self):
-        for file_ in self.output_files:
-            os.rename(file_, file_[:-4])
+        for path in self.output_files:
+            path.rename(path.stem)
 
 
 def main(args=None):
     """Act as an entry point."""
     args = parser.parse_args(args)
-    fh = FileHandler(args.path, args.keep_files, args.only_check_syntax)
+    fh = FileHandler(args.paths, args.keep_files, args.only_check_syntax)
     try:
         fh()
     except Exception:
