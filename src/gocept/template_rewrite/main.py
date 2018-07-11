@@ -22,6 +22,9 @@ parser.add_argument('--keep-files', action='store_true',
 parser.add_argument('--only-check-syntax', action='store_true',
                     help='Do not convert but only report syntax errors in'
                     ' the sources')
+parser.add_argument('--force', choices=['pt', 'dtml'], default=None,
+                    help='Treat all files as PageTemplate (pt) resp.'
+                    'DocumentTemplate (dtml).')
 parser.add_argument('-D', '--debug', action='store_true',
                     help='enter debugger on errors')
 
@@ -36,8 +39,7 @@ class FileHandler(object):
         """
         return rewrite_using_2to3(input_string, *args, **kwargs)
 
-    def __init__(self, paths, keep_files=False, only_check_syntax=False,
-                 rewrite_action=None):
+    def __init__(self, paths, settings, rewrite_action=None):
         self.dtml_files = []
         self.zpt_files = []
         self.output_files = []
@@ -46,8 +48,9 @@ class FileHandler(object):
             self.rewrite_action = rewrite_action
         else:
             self.rewrite_action = self._rewrite_action
-        self.keep_files = keep_files
-        self.only_check_syntax = only_check_syntax
+        self.keep_files = settings.keep_files
+        self.only_check_syntax = settings.only_check_syntax
+        self.force_type = settings.force
 
     def __call__(self):
         for path in self.paths:
@@ -65,9 +68,13 @@ class FileHandler(object):
             self._classify_file(path)
 
     def _classify_file(self, path):
-        if path.suffix in ('.dtml', '.sql'):
+        if self.force_type == 'dtml':
             self.dtml_files.append(path)
-        if path.suffix == '.pt':
+        elif self.force_type == 'pt':
+            self.zpt_files.append(path)
+        elif path.suffix in ('.dtml', '.sql'):
+            self.dtml_files.append(path)
+        elif path.suffix == '.pt':
             self.zpt_files.append(path)
 
     def _process_file(self, path, rewriter):
@@ -101,7 +108,7 @@ class FileHandler(object):
 def main(args=None):
     """Act as an entry point."""
     args = parser.parse_args(args)
-    fh = FileHandler(args.paths, args.keep_files, args.only_check_syntax)
+    fh = FileHandler(args.paths, args)
     try:
         fh()
     except Exception:

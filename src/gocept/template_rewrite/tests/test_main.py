@@ -1,4 +1,6 @@
+from ..dtml import DTMLRegexRewriter
 from ..main import main
+from ..pagetemplates import PTParserRewriter
 import pathlib
 import pkg_resources
 import pytest
@@ -67,3 +69,21 @@ def test_main__main__4(files, caplog):
     main([str(files / 'broken.pt'), str(files / 'one.pt')])
     assert caplog.text.count('Processing') == 2
     assert caplog.text.count('Parsing error') == 1
+
+
+def test_main__main__5(files, mocker):
+    """It treats all files as PageTemplate on `--force=pt`."""
+    mocker.spy(DTMLRegexRewriter, '__call__')
+    mocker.spy(PTParserRewriter, '__call__')
+    main([str(files), '--force=pt'])
+    assert DTMLRegexRewriter.__call__.call_count == 0
+    assert PTParserRewriter.__call__.call_count == 4
+
+
+def test_main__main__6(files, mocker):
+    """It treats all files as DocumentTemplate on `--force=dtml`."""
+    mocker.spy(DTMLRegexRewriter, '__call__')
+    mocker.spy(PTParserRewriter, '__call__')
+    main([str(files), '--force=dtml'])
+    assert DTMLRegexRewriter.__call__.call_count == 4
+    assert PTParserRewriter.__call__.call_count == 0
