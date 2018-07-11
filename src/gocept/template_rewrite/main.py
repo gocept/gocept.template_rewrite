@@ -28,12 +28,12 @@ class FileHandler(object):
     zpt_files = []
     output_files = []
 
-    def _rewrite_action(self, input_string):
+    def _rewrite_action(self, input_string, *args, **kwargs):
         """Use the default action: `rewrite_using_2to3`.
 
         Can be overwritten at __init__.
         """
-        return rewrite_using_2to3(input_string)
+        return rewrite_using_2to3(input_string, *args, **kwargs)
 
     def __init__(self, path, keep_files=False, rewrite_action=None):
         self.path = path
@@ -64,7 +64,8 @@ class FileHandler(object):
                 open(file_out, 'w', encoding='utf-8') as output_file:
             log.warning('Processing %s', file_)
             try:
-                rw = rewriter(input_file.read(), self.rewrite_action)
+                rw = rewriter(
+                    input_file.read(), self.rewrite_action, filename=file_)
             except UnicodeDecodeError:
                 log.error('Error', exc_info=True)
             else:

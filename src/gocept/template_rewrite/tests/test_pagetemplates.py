@@ -1,3 +1,4 @@
+import logging
 import pytest
 from gocept.template_rewrite.pagetemplates import PTParserRewriter
 from gocept.template_rewrite.lib2to3 import rewrite_using_2to3
@@ -13,7 +14,7 @@ from gocept.template_rewrite.lib2to3 import rewrite_using_2to3
 def test_pagetemplates__PTParserRewriter____call____1(
         input, expected):
     """It rewrites the expression values of the pagetemplate."""
-    rw = PTParserRewriter(input, lambda x: "rewritten")
+    rw = PTParserRewriter(input, lambda x, lineno, tag, filename: "rewritten")
     assert rw() == expected
 
 
@@ -33,7 +34,7 @@ def test_pagetemplates__PTParserRewriter____call____1_2(
 
     (working well with PTParserRewriter)
     """
-    rw = PTParserRewriter(input, lambda x: "rewritten")
+    rw = PTParserRewriter(input, lambda x, lineno, tag, filename: "rewritten")
     assert rw() == expected
 
 
@@ -50,7 +51,8 @@ def test_pagetemplates__PTParserRewriter____call____1_2(
 def test_pagetemplates__PTParserRewriter____call____2(
         input, expected):
     """It can work with double semicolon (escape for a single one)."""
-    rw = PTParserRewriter(input, lambda x: x.replace('str', 'unicode'))
+    rw = PTParserRewriter(
+        input, lambda x, lineno, tag, filename: x.replace('str', 'unicode'))
     assert rw() == expected
 
 
@@ -108,7 +110,7 @@ def test_pagetemplates__PTParserRewriter____call____2(
 def test_pagetemplates__PTParserRewriter____call____3(
         input):
     """It can handle some edge cases in pagetemplates."""
-    rw = PTParserRewriter(input, lambda x: x)
+    rw = PTParserRewriter(input, lambda x, lineno, tag, filename: x)
     assert rw() == input
 
 
@@ -143,3 +145,24 @@ def test_pagetemplates__PTParserRewriter____call____5(
     """It is not changed by the preconfigured 2to3 rewrite_action."""
     rw = PTParserRewriter(input, rewrite_using_2to3)
     assert rw() == input
+
+
+def test_pagetemplates__PTParserRewriter____call____6(caplog):
+    """It does not break when reaching a parsing error."""
+    broken = """\
+<span> everything is fine here </span>
+<p tal:attributes="color python: a
+                                  or b.has_key('test')"></p>
+<span> everything is fine here again </span>
+<p tal:attributes="color python: or or"></p>
+"""
+    PTParserRewriter(broken, rewrite_using_2to3, filename='broken.pt')()
+    assert [
+        ('gocept.template_rewrite.lib2to3', logging.ERROR,
+         'Parsing error in broken.pt:2 \n\t'
+         '<p tal:attributes="color python: a\n'
+         '                                  or b.has_key(\'test\')">'),
+        ('gocept.template_rewrite.lib2to3', logging.ERROR,
+         'Parsing error in broken.pt:5 \n\t'
+         '<p tal:attributes="color python: or or">'),
+    ] == caplog.record_tuples

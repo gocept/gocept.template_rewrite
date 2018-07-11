@@ -1,8 +1,14 @@
+import functools
 from xml.sax import handler, saxutils
 import collections
 import html.parser
 import io
+import logging
 import re
+
+
+log = logging.getLogger(__name__)
+
 
 RE_MULTI_ATTRIBUTES = (r'(?P<before>python:)(?P<expr>[^;]*)(?P<end>;|\Z)')
 # [\w\W] matches any symbol including newlines
@@ -11,12 +17,19 @@ RE_SINGLE_ATTRIBUTES = (r'(?P<before>python:)(?P<expr>[\w\W]*)(?P<end>)')
 DOUBLE_SEMICOLON_REPLACEMENT = '_)_replacement_☃_(_'
 
 
+class PTParseError(SyntaxError):
+    """Error while parsing a page template.
+
+    Should be raised by rewrite_action on error."""
+
+
 class PythonExpressionFilter(saxutils.XMLFilterBase):
     """Filter for sax handler to expose python expression in pagetemplates."""
 
-    def __init__(self, parent, rewrite_action):
+    def __init__(self, parent, rewrite_action, filename):
         super().__init__(parent)
         self.rewrite_action = rewrite_action
+        self.filename = filename
 
     def startDocument(self):
         """We return nothing here."""
@@ -32,18 +45,27 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
             match_ob.group('end'),
         ])
 
-    def _rewrite_single_expression(self, match_ob):
+    def _rewrite_single_expression(self, match_ob, lineno, tag, filename):
         """Handle the match object of a single expression."""
-        replaced_value = self.rewrite_action(match_ob.group('expr'))
+        replaced_value = self.rewrite_action(
+            match_ob.group('expr'),
+            lineno=lineno,
+            tag=tag,
+            filename=filename,
+        )
         return self._join_expression(replaced_value, match_ob)
 
-    def _rewrite_multi_expression(self, match_ob):
+    def _rewrite_multi_expression(self, match_ob, lineno, tag, filename):
         """Handle the match object of a multi expression."""
         # Turn the replacement to regular python after matching, before passing
         # it to the rewrite hook.
         unquoted_value = self.rewrite_action(
             match_ob.group('expr').replace(
-                DOUBLE_SEMICOLON_REPLACEMENT, ';'))
+                DOUBLE_SEMICOLON_REPLACEMENT, ';'),
+            lineno=lineno,
+            tag=tag,
+            filename=filename,
+        )
         # We have to escape the semicolon in python for pagetemplates
         quoted_value = unquoted_value.replace(';', ';;')
         return self._join_expression(quoted_value, match_ob)
@@ -57,7 +79,7 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
         else:
             return False
 
-    def startElement(self, name, attrs, ws_dict, is_short_tag):
+    def startElement(self, name, attrs, ws_dict, is_short_tag, lineno):
         """Rewrite the attributes at the start of an element."""
         attrs = collections.OrderedDict(attrs)
         for attr, value in attrs.items():
@@ -69,8 +91,17 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
                     zpt_regex = RE_SINGLE_ATTRIBUTES
                     rewrite_expression = self._rewrite_single_expression
                 value = value.replace(';;', DOUBLE_SEMICOLON_REPLACEMENT)
-                rewritten_value = re.sub(
-                    zpt_regex, rewrite_expression, value)
+
+                tag = join_element(name, attrs, ws_dict, is_short_tag)
+                rewrite_expression = functools.partial(
+                    rewrite_expression, lineno=lineno, tag=tag,
+                    filename=self.filename)
+
+                try:
+                    rewritten_value = re.sub(
+                        zpt_regex, rewrite_expression, value)
+                except PTParseError:
+                    rewritten_value = value
                 # We want to undo the replacement also in cases the regex did
                 # not match.
                 attrs[attr] = rewritten_value.replace(
@@ -118,7 +149,8 @@ class HTMLGenerator(html.parser.HTMLParser):
         # XXX We are deeply coupling to our generator here, as we change the
         # signature wrt the base class.
         self._cont_handler.startElement(
-            tag, attrs, ws_dict, is_short_tag=is_short_tag)
+            tag, attrs, ws_dict, is_short_tag=is_short_tag,
+            lineno=self.getpos()[0])
 
     def _write_raw(self, data):
         # We use `ignorableWhitespace` here as it does no escaping.
@@ -172,28 +204,34 @@ def quoteattr(data, entities={}):
     return data
 
 
+def join_element(name, attrs, ws_dict, is_short_tag):
+    """Synthesize the element from parsed parts."""
+    content = []
+    content.append(u'<' + name)
+    for (attr, value) in attrs.items():
+        if name.startswith('tal:') or attr.startswith('tal:'):
+            # Do not insert additional quoting for tales expressions
+            content.append(u'%s=%s' % (ws_dict[attr], quoteattr(value)))
+        else:
+            # Keep the quoting for the other cases.
+            if value is None:
+                content.append(u'%s' % ws_dict[attr])
+            else:
+                content.append(u'%s=%s' % (ws_dict[attr],
+                                           saxutils.quoteattr(value)))
+    if is_short_tag:
+        # if we have a short_tag we want to render it with whitespaces.
+        content.append(ws_dict['/>'])
+    else:
+        content.append(u'>')
+    return ''.join(content)
+
+
 class CustomXMLGenerator(saxutils.XMLGenerator):
     """XMLGenerator with escape tweaks."""
 
     def startElement(self, name, attrs, ws_dict, is_short_tag):
-        self._write(u'<' + name)
-        for (attr, value) in attrs.items():
-            if name.startswith('tal:') or attr.startswith('tal:'):
-                # Do not insert additional quoting for tales expressions
-                self._write(u'%s=%s' % (ws_dict[attr], quoteattr(value)))
-            else:
-                # Keep the quoting for the other cases.
-                if value is None:
-                    self._write(u'%s' % ws_dict[attr])
-                else:
-                    self._write(u'%s=%s' % (ws_dict[attr],
-                                            saxutils.quoteattr(value)))
-
-        if is_short_tag:
-            # if we have a short_tag we want to render it with whitespaces.
-            self._write(ws_dict['/>'])
-        else:
-            self._write(u'>')
+        self._write(join_element(name, attrs, ws_dict, is_short_tag))
 
 
 class PTParserRewriter(object):
@@ -201,10 +239,11 @@ class PTParserRewriter(object):
 
     rewrite_action = None
 
-    def __init__(self, zpt_input, rewrite_action):
+    def __init__(self, zpt_input, rewrite_action, filename=''):
         self.raw = zpt_input
         self.rewrite_action = rewrite_action
         self.output = io.StringIO()
+        self.filename = filename
 
     def rewrite_zpt(self, input_):
         """Rewrite the input_ by parsing it.
@@ -214,7 +253,8 @@ class PTParserRewriter(object):
         if 'tal:' in input_:
             output_gen = CustomXMLGenerator(self.output, encoding='utf-8')
             parser = HTMLGenerator(convert_charrefs=False)
-            filter = PythonExpressionFilter(parser, self.rewrite_action)
+            filter = PythonExpressionFilter(
+                parser, self.rewrite_action, filename=self.filename)
             filter.setContentHandler(output_gen)
             filter.setErrorHandler(handler.ErrorHandler())
             filter.parse(input_)
