@@ -10,6 +10,7 @@ FIXTURE_DIR = pkg_resources.resource_filename(
 
 @pytest.fixture('function')
 def files(tmpdir):
+    """Create a copy of the fixture directory in a temporary directory."""
     dir = str(tmpdir.join('fixture'))
     shutil.copytree(FIXTURE_DIR, dir)
     yield pathlib.Path(dir)
@@ -36,6 +37,22 @@ def test_main__main__2(files):
         'two.dtml',
         'two.dtml.out',
     ] == sorted(x.name for x in files.iterdir())
+    # Source files are not changed:
+    for file in pathlib.Path(FIXTURE_DIR).iterdir():
+        source = file.read_text()
+        dest = files.joinpath(file.name).read_text()
+        assert dest == source
+
+
+def test_main__main__3(files, caplog):
+    """It does only report errors on `--only-check-syntax`."""
+    main([str(files), '--only-check-syntax'])
+    assert ['broken.pt',
+            'one.pt',
+            'two.dtml'] == sorted([x.name for x in files.iterdir()])
+    assert caplog.text.count('Processing') == 0
+    assert caplog.text.count('Parsing error') == 1
+    # Source files are not changed:
     for file in pathlib.Path(FIXTURE_DIR).iterdir():
         source = file.read_text()
         dest = files.joinpath(file.name).read_text()
