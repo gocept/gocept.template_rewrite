@@ -192,19 +192,13 @@ class HTMLGenerator(html.parser.HTMLParser):
         self._cont_handler = cont_handler
 
 
-def quoteattr(data, entities={}):
+def quoteattr(data):
     """Quote an attribute value.
 
-    Escape less then xml.saxutils.quoteattr.
+    Escape less then xml.saxutils.quoteattr,
+    e.g. do not convert `\n` to `&#10;`.
     """
-    if '"' in data:
-        if "'" in data:
-            data = '"%s"' % data.replace('"', "&quot;")
-        else:
-            data = "'%s'" % data
-    else:
-        data = '"%s"' % data
-    return data
+    return '"%s"' % data.replace('"', "&quot;")
 
 
 def join_element(name, attrs, ws_dict):
