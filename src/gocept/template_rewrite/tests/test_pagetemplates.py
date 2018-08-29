@@ -63,7 +63,7 @@ def test_pagetemplates__PTParserRewriter____call____2(
     ('''
 <tal:x condition="item/desc"
        replace="structure python:item.replace('\n','<br/>')"/>'''),
-    # We have the name of an attribute occuring after it in the tag.
+    # We have the name of an attribute occurring after it in the tag.
     ('''
 <input type="hidden"
        id="selector"
