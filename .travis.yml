@@ -10,5 +10,3 @@ after_success:
     - coveralls
 cache:
   pip: true
-  directories:
-    - eggs/
