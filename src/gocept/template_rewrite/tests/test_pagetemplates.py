@@ -79,6 +79,7 @@ def test_pagetemplates__PTParserRewriter____call____2(
     ('''
 <!-- Support for an
         on-screen keyboard -->'''),
+    '''<!DOCTYPE html>''',
     ('''
 <p>Documents with multiple document root tags</p>
 <p>are not valid XML.</p>

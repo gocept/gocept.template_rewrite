@@ -32,22 +32,11 @@ parser.add_argument('-D', '--debug', action='store_true',
 class FileHandler(object):
     """Handle the rewrite of batches of files."""
 
-    def _rewrite_action(self, input_string, *args, **kwargs):
-        """Use the default action: `rewrite_using_2to3`.
-
-        Can be overwritten at __init__.
-        """
-        return rewrite_using_2to3(input_string, *args, **kwargs)
-
-    def __init__(self, paths, settings, rewrite_action=None):
+    def __init__(self, paths, settings):
         self.dtml_files = []
         self.zpt_files = []
         self.output_files = []
         self.paths = paths
-        if rewrite_action:
-            self.rewrite_action = rewrite_action
-        else:
-            self.rewrite_action = self._rewrite_action
         self.keep_files = settings.keep_files
         self.only_check_syntax = settings.only_check_syntax
         self.force_type = settings.force
@@ -58,6 +47,13 @@ class FileHandler(object):
         self.process_files()
         if not self.keep_files and not self.only_check_syntax:
             self.replace_files()
+
+    def rewrite_action(self, input_string, *args, **kwargs):
+        """Use `rewrite_using_2to3` as default action.
+
+        Can be overwritten in subclass.
+        """
+        return rewrite_using_2to3(input_string, *args, **kwargs)
 
     def collect_files(self, path):
         if path.is_dir():
@@ -84,7 +80,7 @@ class FileHandler(object):
         try:
             rw = rewriter(
                 path.read_text(), self.rewrite_action, filename=str(path))
-        except UnicodeDecodeError:
+        except UnicodeDecodeError:  # pragma: no cover
             log.error('Error', exc_info=True)
         else:
             result = rw()
@@ -111,7 +107,7 @@ def main(args=None):
     fh = FileHandler(args.paths, args)
     try:
         fh()
-    except Exception:
+    except Exception:  # pragma: no cover
         if args.debug:
             pdb.post_mortem()
         raise

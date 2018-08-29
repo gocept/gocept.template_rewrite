@@ -21,10 +21,11 @@ def files(tmpdir):
 def test_main__main__1(files, caplog):
     """It converts all files in the given directory."""
     main([str(files)])
+    res_files = [x.name for x in files.iterdir()]
     assert ['README.txt',
             'broken.pt',
             'one.pt',
-            'two.dtml'] == sorted(x.name for x in files.iterdir())
+            'two.dtml'] == sorted(res_files)
     assert caplog.text.count('Processing') == 3
     assert caplog.text.count('Parsing error') == 1
 
@@ -32,6 +33,7 @@ def test_main__main__1(files, caplog):
 def test_main__main__2(files):
     """It does not touch the original files on `--keep-files`."""
     main([str(files), '--keep-files'])
+    res_files = [x.name for x in files.iterdir()]
     assert [
         'README.txt',
         'broken.pt',
@@ -40,7 +42,7 @@ def test_main__main__2(files):
         'one.pt.out',
         'two.dtml',
         'two.dtml.out',
-    ] == sorted(x.name for x in files.iterdir())
+    ] == sorted(res_files)
     # Source files are not changed:
     for file in pathlib.Path(FIXTURE_DIR).iterdir():
         source = file.read_text()
@@ -51,10 +53,11 @@ def test_main__main__2(files):
 def test_main__main__3(files, caplog):
     """It does only report errors on `--only-check-syntax`."""
     main([str(files), '--only-check-syntax'])
+    res_files = [x.name for x in files.iterdir()]
     assert ['README.txt',
             'broken.pt',
             'one.pt',
-            'two.dtml'] == sorted([x.name for x in files.iterdir()])
+            'two.dtml'] == sorted(res_files)
     assert caplog.text.count('Processing') == 0
     assert caplog.text.count('Parsing error') == 1
     # Source files are not changed:

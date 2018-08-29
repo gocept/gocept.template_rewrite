@@ -34,12 +34,6 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
         self.rewrite_action = rewrite_action
         self.filename = filename
 
-    def startDocument(self):
-        """We return nothing here."""
-        # The parent method renders a <xml> tag here, but we do not want that
-        # here.
-        pass
-
     def _join_expression(self, value, match_ob):
         """Re-join the matched groups."""
         return ''.join([
@@ -162,28 +156,8 @@ class HTMLGenerator(html.parser.HTMLParser):
     def handle_endtag(self, tag):
         self._cont_handler.endElement(tag)
 
-    def handle_charref(self, name):
-        self._write_raw(f'&#{name};')
-
-    # Overridable -- handle entity reference
-    def handle_entityref(self, name):
-        self._write_raw(f'&{name};')
-
-    # Overridable -- handle data
     def handle_data(self, data):
         self._write_raw(data)
-
-    # Overridable -- handle comment
-    def handle_comment(self, data):
-        self._write_raw(f'<!--{data}-->')
-
-    # Overridable -- handle declaration
-    def handle_decl(self, decl):
-        self._cont_handler.startElement('!' + decl, {}, {}, is_short_tag=False)
-
-    # Overridable -- handle processing instruction
-    def handle_pi(self, data):
-        self._write_raw(f'<?{data}>')
 
     def unknown_decl(self, data):
         raise NotImplementedError

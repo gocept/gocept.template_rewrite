@@ -4,8 +4,9 @@ source = gocept.template_rewrite
 
 [report]
 precision = 2
-omit = */interfaces.py
-       */interfaces/*
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
 
 [html]
 directory = coverage-report
