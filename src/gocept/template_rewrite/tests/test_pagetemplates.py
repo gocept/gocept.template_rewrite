@@ -141,6 +141,13 @@ def test_pagetemplates__PTParserRewriter____call____4(
     # We allow newlines within brackets
     ('''<tal:x condition="python:(a
                   or b)">'''),
+    '''<span>&amp;</span>''',
+    '''<input type="hidden" name="test" value="&amp;">''',
+    ('''<button tal:attributes="'''
+     '''onclick string:window.location = 'test?foo=bar&bar=foo'">'''),
+    '''<button type="button" onclick="text_insert('&amp;')">asdf</button>''',
+    ('''<button onclick="go('page/launch?table=gendocument&id='+current_id())\
+">Ext. Editor</button>'''),
 ])
 def test_pagetemplates__PTParserRewriter____call____5(
         input):
