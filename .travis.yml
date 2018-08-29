@@ -3,15 +3,11 @@ sudo: false
 python:
     - 3.6
 install:
-    - pip install setuptools zc.buildout
-    - pip install coveralls coverage
-    - buildout install test
+    - pip install tox-travis coveralls
 script:
-    - coverage run bin/test
+    - tox
 after_success:
     - coveralls
-notifications:
-    email: false
 cache:
   pip: true
   directories:

@@ -6,6 +6,7 @@
 .installed.cfg
 .mr.developer.cfg
 .pytest_cache
+.tox
 bin
 build
 coverage-report

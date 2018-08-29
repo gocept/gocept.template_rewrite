@@ -13,3 +13,9 @@ Developing gocept.template_rewrite
 
 :Current change log:
     https://raw.githubusercontent.com/gocept/gocept.template_rewrite/master/CHANGES.rst
+
+:Installation:
+    ``pip3 install gocept.template_rewrite``
+
+:Run the tests:
+    ``$ tox``
