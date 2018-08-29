@@ -16,6 +16,9 @@ RE_SINGLE_ATTRIBUTES = (r'(?P<before>python:)(?P<expr>[\w\W]*)(?P<end>)')
 
 DOUBLE_SEMICOLON_REPLACEMENT = '_)_replacement_☃_(_'
 
+# This prevents collision with attribute names.
+ENDTAG = '>endtag<'
+
 
 class PTParseError(SyntaxError):
     """Error while parsing a page template.
@@ -92,7 +95,7 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
                     rewrite_expression = self._rewrite_single_expression
                 value = value.replace(';;', DOUBLE_SEMICOLON_REPLACEMENT)
 
-                tag = join_element(name, attrs, ws_dict, is_short_tag)
+                tag = join_element(name, attrs, ws_dict)
                 rewrite_expression = functools.partial(
                     rewrite_expression, lineno=lineno, tag=tag,
                     filename=self.filename)
@@ -116,6 +119,8 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
 
 
 leading_whitespace = '(\s*{})'
+# This tag end matches whitespaces and shorttag
+tag_end = '(\s*/?>$)'
 
 
 class HTMLGenerator(html.parser.HTMLParser):
@@ -141,10 +146,8 @@ class HTMLGenerator(html.parser.HTMLParser):
                     flags=re.IGNORECASE)
             ws_dict[attr] = mo.group(1)
 
-        if is_short_tag:
-            short_tag = '/>'
-            mo = re.search(leading_whitespace.format(short_tag), full_tag)
-            ws_dict[short_tag] = mo.group()
+        mo = re.search(tag_end, full_tag)
+        ws_dict[ENDTAG] = mo.group()
 
         # XXX We are deeply coupling to our generator here, as we change the
         # signature wrt the base class.
@@ -204,7 +207,7 @@ def quoteattr(data, entities={}):
     return data
 
 
-def join_element(name, attrs, ws_dict, is_short_tag):
+def join_element(name, attrs, ws_dict):
     """Synthesize the element from parsed parts."""
     content = []
     content.append(u'<' + name)
@@ -219,11 +222,7 @@ def join_element(name, attrs, ws_dict, is_short_tag):
             else:
                 content.append(u'%s=%s' % (ws_dict[attr],
                                            saxutils.quoteattr(value)))
-    if is_short_tag:
-        # if we have a short_tag we want to render it with whitespaces.
-        content.append(ws_dict['/>'])
-    else:
-        content.append(u'>')
+    content.append(ws_dict[ENDTAG])
     return ''.join(content)
 
 
@@ -231,7 +230,7 @@ class CustomXMLGenerator(saxutils.XMLGenerator):
     """XMLGenerator with escape tweaks."""
 
     def startElement(self, name, attrs, ws_dict, is_short_tag):
-        self._write(join_element(name, attrs, ws_dict, is_short_tag))
+        self._write(join_element(name, attrs, ws_dict))
 
 
 class PTParserRewriter(object):
