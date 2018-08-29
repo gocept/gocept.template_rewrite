@@ -102,7 +102,7 @@ class FileHandler(object):
 
     def replace_files(self):
         for path in self.output_files:
-            path.rename(path.stem)
+            path.rename(path.parent / path.stem)
 
 
 def main(args=None):
