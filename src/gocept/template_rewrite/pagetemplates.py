@@ -113,6 +113,7 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
 
 
 leading_whitespace = '(\s*{})'
+value_pattern = '''{}="([^"]*)"'''
 # This tag end matches whitespaces and shorttag
 tag_end = '(\s*/?>$)'
 
@@ -126,6 +127,7 @@ class HTMLGenerator(html.parser.HTMLParser):
     def handle_starttag(self, tag, attrs, is_short_tag=False):
         full_tag = self.get_starttag_text()
         ws_dict = {}
+        raw_attrs = []
         for attr, value in attrs:
             # We include the '=' to ensure that we get the attribute instead of
             # another string in the tag.
@@ -138,7 +140,18 @@ class HTMLGenerator(html.parser.HTMLParser):
                 mo = re.search(
                     leading_whitespace.format(attr) + '(\s*)', full_tag,
                     flags=re.IGNORECASE)
+                raw_value = None
+            else:
+                # if we have a value it was already unescaped by the base
+                # class, but we want the raw value as this is one way to
+                # preserve `&` and `&amp;` in one string at the same time. So
+                # we have to parse the tag for the raw value here again.
+                mo_value = re.search(
+                    value_pattern.format(attr), full_tag, flags=re.IGNORECASE)
+                raw_value = mo_value.group(1)
+
             ws_dict[attr] = mo.group(1)
+            raw_attrs.append((attr, raw_value))
 
         mo = re.search(tag_end, full_tag)
         ws_dict[ENDTAG] = mo.group()
@@ -146,12 +159,30 @@ class HTMLGenerator(html.parser.HTMLParser):
         # XXX We are deeply coupling to our generator here, as we change the
         # signature wrt the base class.
         self._cont_handler.startElement(
-            tag, attrs, ws_dict, is_short_tag=is_short_tag,
+            tag, raw_attrs, ws_dict, is_short_tag=is_short_tag,
             lineno=self.getpos()[0])
 
     def _write_raw(self, data):
         # We use `ignorableWhitespace` here as it does no escaping.
         self._cont_handler.ignorableWhitespace(data)
+
+    def handle_pi(self, data):
+        self._write_raw(f'<?{data}>')
+
+    def handle_comment(self, data):
+        self._write_raw(f'<!--{data}-->')
+
+    def handle_charref(self, name):
+        self._write_raw(f'&#{name};')
+
+    def handle_entityref(self, name):
+        self._write_raw(f'&{name};')
+
+    def handle_decl(self, decl):
+        # lineno is only needed for tal-expressions.
+        self._cont_handler.startElement(
+            '!' + decl, {}, {ENDTAG: '>'}, is_short_tag=False,
+            lineno=self.getpos()[0])
 
     def handle_endtag(self, tag):
         self._cont_handler.endElement(tag)
@@ -169,7 +200,7 @@ class HTMLGenerator(html.parser.HTMLParser):
 def quoteattr(data):
     """Quote an attribute value.
 
-    Escape less then xml.saxutils.quoteattr,
+    Escape less then the obvious xml.saxutils.quoteattr,
     e.g. do not convert `\n` to `&#10;`.
     """
     return '"%s"' % data.replace('"', "&quot;")
@@ -189,7 +220,7 @@ def join_element(name, attrs, ws_dict):
                 content.append(u'%s' % ws_dict[attr])
             else:
                 content.append(u'%s=%s' % (ws_dict[attr],
-                                           saxutils.quoteattr(value)))
+                                           quoteattr(value)))
     content.append(ws_dict[ENDTAG])
     return ''.join(content)
 
@@ -212,26 +243,28 @@ class PTParserRewriter(object):
         self.output = io.StringIO()
         self.filename = filename
 
+    @property
+    def _is_tal_content(self):
+        return 'tal:' in self.raw
+
     def rewrite_zpt(self, input_):
         """Rewrite the input_ by parsing it.
 
         Python expressions are passed to `rewrite_action` for processing
         """
-        if 'tal:' in input_:
-            output_gen = CustomXMLGenerator(self.output, encoding='utf-8')
-            parser = HTMLGenerator(convert_charrefs=False)
-            filter = PythonExpressionFilter(
-                parser, self.rewrite_action, filename=self.filename)
-            filter.setContentHandler(output_gen)
-            filter.setErrorHandler(handler.ErrorHandler())
-            filter.parse(input_)
+        output_gen = CustomXMLGenerator(self.output, encoding='utf-8')
+        parser = HTMLGenerator(convert_charrefs=False)
+        filter = PythonExpressionFilter(
+            parser, self.rewrite_action, filename=self.filename)
+        filter.setContentHandler(output_gen)
+        filter.setErrorHandler(handler.ErrorHandler())
+        filter.parse(input_)
 
-            self.output.seek(0)
-            return self.output.read()
-        return input_
+        self.output.seek(0)
+        return self.output.read()
 
     def __call__(self):
         """Return the rewrite of the parsed input."""
-        res = self.rewrite_zpt(self.raw)
-
-        return res
+        if self._is_tal_content:
+            return self.rewrite_zpt(self.raw)
+        return self.raw

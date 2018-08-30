@@ -4,6 +4,18 @@ from gocept.template_rewrite.pagetemplates import PTParserRewriter
 from gocept.template_rewrite.lib2to3 import rewrite_using_2to3
 
 
+@pytest.fixture(scope='module', autouse=True)
+def rewriter():
+    """We want to parse all the strings in tests.
+
+    The parser makes an optimization for files without `tal:` in reality.
+    """
+    old_prop = PTParserRewriter._is_tal_content
+    PTParserRewriter._is_tal_content = True
+    yield
+    PTParserRewriter._is_tal_content = old_prop
+
+
 @pytest.mark.parametrize('input, expected', [
     ('<p tal:define="x d; y python: str(234); z python: 5; a d"></p>',
      '<p tal:define="x d; y python:rewritten; z python:rewritten; a d"></p>'),
