@@ -14,3 +14,12 @@ The initial use case is to have a pluggable system to convert Python 2
 expressions in templates to Python 3.
 
 This package runs on Python 3.6.
+
+
+Caveats
+=======
+
+During rewrite double hyphens within HTML-comments are removed as the Chameleon
+engine in Zope 4 (and the `actual specification`_) are very strict about it.
+
+.. _actual specification: http://www.htmlhelp.com/reference/wilbur/misc/comment.html

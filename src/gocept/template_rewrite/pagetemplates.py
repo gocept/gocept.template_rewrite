@@ -170,6 +170,7 @@ class HTMLGenerator(html.parser.HTMLParser):
         self._write_raw(f'<?{data}>')
 
     def handle_comment(self, data):
+        data = data.replace('--', '')
         self._write_raw(f'<!--{data}-->')
 
     def handle_charref(self, name):

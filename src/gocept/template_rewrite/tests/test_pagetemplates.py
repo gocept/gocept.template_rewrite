@@ -22,6 +22,13 @@ def rewriter():
     ('<tal:t define="x d; y python: str(234); z python: 5; a d"></tal:t>',
      '<tal:t define="x d; y python:rewritten; z python:rewritten; a d">'
      '</tal:t>'),
+    # Double hyphen gets removed.
+    ('<!-- Comment with double hyphen -- in the middle -->',
+     '<!-- Comment with double hyphen  in the middle -->'),
+    ('<!-- Comment with triple hyphen --- in the middle -->',
+     '<!-- Comment with triple hyphen - in the middle -->'),
+    ('<!-- Comment with quadruple hyphen ---- in the middle -->',
+     '<!-- Comment with quadruple hyphen  in the middle -->'),
 ])
 def test_pagetemplates__PTParserRewriter____call____1(
         input, expected):
