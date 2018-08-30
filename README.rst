@@ -20,6 +20,6 @@ Caveats
 =======
 
 During rewrite double hyphens within HTML-comments are removed as the Chameleon
-engine in Zope 4 (and the `actual specification`_) are very strict about it.
+engine in Zope 4 (and the `actual specification`_) is very strict about it.
 
 .. _actual specification: http://www.htmlhelp.com/reference/wilbur/misc/comment.html
