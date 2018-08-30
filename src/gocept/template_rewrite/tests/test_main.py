@@ -23,10 +23,11 @@ def test_main__main__1(files, caplog):
     main([str(files)])
     res_files = [x.name for x in files.iterdir()]
     assert ['README.txt',
+            'broken.html',
             'broken.pt',
             'one.pt',
             'two.dtml'] == sorted(res_files)
-    assert caplog.text.count('Processing') == 3
+    assert caplog.text.count('Processing') == 4
     assert caplog.text.count('Parsing error') == 1
 
 
@@ -36,6 +37,8 @@ def test_main__main__2(files):
     res_files = [x.name for x in files.iterdir()]
     assert [
         'README.txt',
+        'broken.html',
+        'broken.html.out',
         'broken.pt',
         'broken.pt.out',
         'one.pt',
@@ -55,6 +58,7 @@ def test_main__main__3(files, caplog):
     main([str(files), '--only-check-syntax'])
     res_files = [x.name for x in files.iterdir()]
     assert ['README.txt',
+            'broken.html',
             'broken.pt',
             'one.pt',
             'two.dtml'] == sorted(res_files)
@@ -80,7 +84,7 @@ def test_main__main__5(files, mocker):
     mocker.spy(PTParserRewriter, '__call__')
     main([str(files), '--force=pt'])
     assert DTMLRegexRewriter.__call__.call_count == 0
-    assert PTParserRewriter.__call__.call_count == 4
+    assert PTParserRewriter.__call__.call_count == 5
 
 
 def test_main__main__6(files, mocker):
@@ -88,7 +92,7 @@ def test_main__main__6(files, mocker):
     mocker.spy(DTMLRegexRewriter, '__call__')
     mocker.spy(PTParserRewriter, '__call__')
     main([str(files), '--force=dtml'])
-    assert DTMLRegexRewriter.__call__.call_count == 4
+    assert DTMLRegexRewriter.__call__.call_count == 5
     assert PTParserRewriter.__call__.call_count == 0
 
 
