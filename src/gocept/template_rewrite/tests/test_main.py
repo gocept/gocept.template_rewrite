@@ -90,3 +90,11 @@ def test_main__main__6(files, mocker):
     main([str(files), '--force=dtml'])
     assert DTMLRegexRewriter.__call__.call_count == 4
     assert PTParserRewriter.__call__.call_count == 0
+
+
+def test_main__PTParserRewriter__1(files, mocker):
+    """It skips rewrite of a file without `tal:` in content."""
+    mocker.spy(PTParserRewriter, 'rewrite_zpt')
+    main([str(files / 'broken.html'), str(files / 'one.pt')])
+    # broken.html is not rewritten
+    assert PTParserRewriter.rewrite_zpt.call_count == 1

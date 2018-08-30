@@ -107,8 +107,6 @@ def test_pagetemplates__PTParserRewriter____call____2(
     '''<span tal:content="python: 'abd;adb'" />''',
     '''<span tal:content="python: 'abd;;adb'" />''',
     '''<span tal:content="python: 'abd\\';;adb'" />''',
-    # Broken HTML without TAL statements
-    '''<count y;not any nw in x$y;1b];0b]}\n\nread:>''',
     # Whitespaces at the end of a tag
     '''<td tal:attributes="class item/class" >asdf</td>''',
 ])
