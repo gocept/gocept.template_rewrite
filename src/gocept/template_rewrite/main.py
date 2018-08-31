@@ -75,8 +75,7 @@ class FileHandler(object):
 
     def _process_file(self, path, rewriter):
         """Process one file."""
-        if not self.only_check_syntax:
-            log.warning('Processing %s', path)
+        log.warning('Processing %s', path)
         try:
             rw = rewriter(
                 path.read_text(), self.rewrite_action, filename=str(path))

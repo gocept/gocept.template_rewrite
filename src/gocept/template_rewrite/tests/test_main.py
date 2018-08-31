@@ -54,7 +54,7 @@ def test_main__main__2(files):
 
 
 def test_main__main__3(files, caplog):
-    """It does only report errors on `--only-check-syntax`."""
+    """It reports parsing errors on `--only-check-syntax`."""
     main([str(files), '--only-check-syntax'])
     res_files = [x.name for x in files.iterdir()]
     assert ['README.txt',
@@ -62,7 +62,7 @@ def test_main__main__3(files, caplog):
             'broken.pt',
             'one.pt',
             'two.dtml'] == sorted(res_files)
-    assert caplog.text.count('Processing') == 0
+    assert caplog.text.count('Processing') == 4
     assert caplog.text.count('Parsing error') == 1
     # Source files are not changed:
     for file in pathlib.Path(FIXTURE_DIR).iterdir():
