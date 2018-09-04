@@ -129,10 +129,11 @@ class HTMLGenerator(html.parser.HTMLParser):
         ws_dict = {}
         raw_attrs = []
         for attr, value in attrs:
-            # We include the '=' to ensure that we get the attribute instead of
-            # another string in the tag.
-            mo = re.search(leading_whitespace.format(attr) + '(?==)', full_tag,
-                           flags=re.IGNORECASE)
+            # We include the '="' to ensure that we get the attribute instead
+            # of another string in the tag.
+            mo = re.search(
+                leading_whitespace.format(attr) + '(?==")', full_tag,
+                flags=re.IGNORECASE)
             if not mo:
                 # We seem to have a attribute without `=` so we ensure
                 # whitespaces around it and hope that the will not be another

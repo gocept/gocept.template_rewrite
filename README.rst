@@ -16,6 +16,13 @@ expressions in templates to Python 3.
 This package runs on Python 3.6.
 
 
+Requirements
+============
+
+For the rewrite to work properly, it is necessary to have this structure
+``attr="value"`` for attributes in tags with no whitespaces around the ``=``,
+as otherwise the values will get lost.
+
 Caveats
 =======
 
