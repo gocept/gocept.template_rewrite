@@ -112,10 +112,10 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
         self._parent.close()
 
 
-leading_whitespace = '(\s*{})'
+leading_whitespace = r'(\s*{})'
 value_pattern = '''{}="([^"]*)"'''
 # This tag end matches whitespaces and shorttag
-tag_end = '(\s*/?>$)'
+tag_end = r'(\s*/?>$)'
 
 
 class HTMLGenerator(html.parser.HTMLParser):
@@ -139,7 +139,7 @@ class HTMLGenerator(html.parser.HTMLParser):
                 # whitespaces around it and hope that the will not be another
                 # occurrence of it.
                 mo = re.search(
-                    leading_whitespace.format(attr) + '(\s*)', full_tag,
+                    leading_whitespace.format(attr) + r'(\s*)', full_tag,
                     flags=re.IGNORECASE)
                 raw_value = None
             else:
