@@ -1,6 +1,7 @@
 from gocept.template_rewrite.dtml import DTMLRegexRewriter
 from gocept.template_rewrite.lib2to3 import rewrite_using_2to3
 from gocept.template_rewrite.pagetemplates import PTParserRewriter
+from gocept.template_rewrite.pagetemplates import PTParseError
 import argparse
 import logging
 import os
@@ -82,7 +83,18 @@ class FileHandler(object):
         except UnicodeDecodeError:  # pragma: no cover
             log.error('Error', exc_info=True)
         else:
-            result = rw()
+            try:
+                result = rw()
+            except PTParseError as err:
+                if err.filename is None:
+                    err.filename = path
+                err.print()
+                if not self.only_check_syntax:
+                    raise
+            except Exception:
+                log.error('Uncaught error in %s', path)
+                raise
+
             if not self.only_check_syntax:
                 file_out = pathlib.Path(str(path) + '.out')
                 file_out.write_text(result, encoding='utf-8')

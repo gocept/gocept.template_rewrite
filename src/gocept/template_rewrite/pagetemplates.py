@@ -24,6 +24,23 @@ class PTParseError(SyntaxError):
     """Error while parsing a page template.
 
     Should be raised by rewrite_action on error."""
+    def __init__(self, lineno=None, tag=None, filename=None):
+        """ Initialize with all info that is available at the given level.
+        Sometimes the error is caught at a higher level, supplanted with
+        additional info and raised again.
+        """
+        self.lineno = lineno
+        self.tag = tag
+        self.filename = filename
+
+    def print(self):
+        """Give a description of the error"""
+        log.error('Parsing error in %s:%d \n\t%s',
+                  self.filename or '?',
+                  self.lineno or '?',
+                  self.tag or '?',
+                  exc_info=False
+                  )
 
 
 class PythonExpressionFilter(saxutils.XMLFilterBase):
@@ -87,6 +104,12 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
                 else:
                     zpt_regex = RE_SINGLE_ATTRIBUTES
                     rewrite_expression = self._rewrite_single_expression
+
+                if value is None:
+                    raise PTParseError(
+                            filename=self.filename,
+                            lineno=lineno
+                            )
                 value = value.replace(';;', DOUBLE_SEMICOLON_REPLACEMENT)
 
                 tag = join_element(name, attrs, ws_dict)
@@ -94,11 +117,9 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
                     rewrite_expression, lineno=lineno, tag=tag,
                     filename=self.filename)
 
-                try:
-                    rewritten_value = re.sub(
-                        zpt_regex, rewrite_expression, value)
-                except PTParseError:
-                    rewritten_value = value
+                rewritten_value = re.sub(
+                    zpt_regex, rewrite_expression, value)
+
                 # We want to undo the replacement also in cases the regex did
                 # not match.
                 attrs[attr] = rewritten_value.replace(
@@ -149,6 +170,11 @@ class HTMLGenerator(html.parser.HTMLParser):
                 # we have to parse the tag for the raw value here again.
                 mo_value = re.search(
                     value_pattern.format(attr), full_tag, flags=re.IGNORECASE)
+                if mo_value is None:
+                    raise PTParseError(
+                            lineno=self.getpos()[0],
+                            tag=full_tag
+                            )
                 raw_value = mo_value.group(1)
 
             ws_dict[attr] = mo.group(1)
@@ -159,9 +185,14 @@ class HTMLGenerator(html.parser.HTMLParser):
 
         # XXX We are deeply coupling to our generator here, as we change the
         # signature wrt the base class.
-        self._cont_handler.startElement(
-            tag, raw_attrs, ws_dict, is_short_tag=is_short_tag,
-            lineno=self.getpos()[0])
+        try:
+            self._cont_handler.startElement(
+                tag, raw_attrs, ws_dict, is_short_tag=is_short_tag,
+                lineno=self.getpos()[0])
+        except PTParseError as err:
+            if err.tag is None:
+                err.tag = full_tag
+            raise
 
     def _write_raw(self, data):
         # We use `ignorableWhitespace` here as it does no escaping.
@@ -260,7 +291,13 @@ class PTParserRewriter(object):
             parser, self.rewrite_action, filename=self.filename)
         filter.setContentHandler(output_gen)
         filter.setErrorHandler(handler.ErrorHandler())
-        filter.parse(input_)
+        try:
+            filter.parse(input_)
+        except PTParseError as err:
+            if err.filename is None:
+                # add information that is sometimes not known deep down
+                err.filename = self.filename
+            raise
 
         self.output.seek(0)
         return self.output.read()

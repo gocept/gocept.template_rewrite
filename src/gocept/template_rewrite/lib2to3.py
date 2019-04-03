@@ -25,7 +25,7 @@ def rewrite_using_2to3(src, lineno, tag, filename):
     except lib2to3.pgen2.parse.ParseError:
         log.error('Parsing error in %s:%d \n\t%s',
                   filename, lineno, tag, exc_info=False)
-        raise PTParseError
+        raise PTParseError(filename=filename, lineno=lineno, tag=tag)
     result = str(tree)[:-1]
     if result == consolidated_src:
         return src  # include leading white space
