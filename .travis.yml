@@ -1,13 +1,17 @@
 language: python
 dist: xenial
 python:
-    - 3.6
-    - 3.7
+- 3.6
+- 3.7
 install:
-    - pip install tox-travis coveralls
+- pip install tox-travis coveralls
 script:
-    - tox
+- tox
 after_success:
-    - coveralls
+- coveralls
 cache:
   pip: true
+notifications:
+  webhooks:
+    urls:
+      secure: yiVpu1DlFepAQw28rPYslkSLfWfvy2Se3p/2sbERYYd6kylqeZGqAE82x/RhRyMCgm216wkQ7+ZGZNKTT2LU9DbCqYWV53/KbIcQ7Jg8PD29rMFZtKEDlzdoWJ9ZoojQ5nQvoZ3lc5XNKnXvWesiwkTP1D+IENymGBLbH4sUmCKQFKSwmXVig5Wtez0NsUF6xI8x9ZRmhGTRv2fqxUJIvDJ7zrD635jv/Fz3eOsCMU3+tAf9NQiuhvU2IgoLubk5s8ahd9qmDfZkpICpI3hBBnuhwpNDdCrTbfX9sfHO9QAzUwI0ACd+oEouodAzSOws/XwsVvTrXeHHWWGWjiRy6lx3Y+7YlV5aoUFLL7q1lnnN4Iabl45JJt/dtg9mw1VGzuXD4Ou7+ZWDyjJ3LNCgDFtWAOD56aRxmJX7H7qCmoQfgNi36hhnhxnFNfwab6EF5gh0PrRn5UDQVy9M5rulnlR+ksfZI0rRpNKb1QB5+pQx8jAnqfcUzPMzb6g39pMHCnPBeWyqMM3Mcsjk+GXcvIQwCu6TggcF2aUNpih+YT63Rba439F4FNwGjMiZgpjO5s6ScKqNGIPLD6nDxWjruw+dov3zeAiNP6ZMqpKtYNT84+gA8q8S5nYJIDLMi9pQNlb5LNLu0N+Cx2VAjHGJdu4/kD/UTsxDkkD0eGWBWMQ=
