@@ -177,6 +177,11 @@ class HTMLGenerator(html.parser.HTMLParser):
                             )
                 raw_value = mo_value.group(1)
 
+            if mo is None:
+                raise PTParseError(
+                    lineno=self.getpos()[0],
+                    tag=full_tag
+                )
             ws_dict[attr] = mo.group(1)
             raw_attrs.append((attr, raw_value))
 
