@@ -129,6 +129,8 @@ def test_pagetemplates__PTParserRewriter____call____2(
     # Whitespaces at the end of a tag
     '''<td tal:attributes="class item/class" >asdf</td>''',
     '''<input tal:attributes="value python:test(e_id=e_id)" id="info">''',
+    # Whitespaces between tags
+    '''<td valign="top" align="right" width="20">''',
 ])
 def test_pagetemplates__PTParserRewriter____call____3(
         input):
