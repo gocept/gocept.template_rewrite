@@ -112,8 +112,8 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
         self._parent.close()
 
 
-leading_whitespace = r'(\s*{})'
-value_pattern = '''{}="([^"]*)"'''
+leading_whitespace = r'(\s+{})'
+value_pattern = '''\\s+{}="([^"]*)"'''
 # This tag end matches whitespaces and shorttag
 tag_end = r'(\s*/?>$)'
 
