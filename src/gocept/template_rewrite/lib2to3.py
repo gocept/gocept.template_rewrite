@@ -1,4 +1,3 @@
-from gocept.template_rewrite.pagetemplates import PTParseError
 import lib2to3.pgen2.parse
 import lib2to3.refactor
 import logging

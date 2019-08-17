@@ -76,7 +76,7 @@ class FileHandler(object):
 
     def _process_file(self, path, rewriter):
         """Process one file."""
-        log.info('Processing %s', path)
+        log.warn('Processing %s', path)
         try:
             rw = rewriter(
                 path.read_text(), self.rewrite_action, filename=str(path))
@@ -87,7 +87,8 @@ class FileHandler(object):
                 result = rw()
             except PTParseError:
                 if not self.only_check_syntax:
-                    log.error("Parsing error. Set --only-check-syntax to ignore.")
+                    log.error("Parsing error. "
+                              "Set --only-check-syntax to ignore.")
                     raise
 
             if not self.only_check_syntax:

@@ -168,8 +168,8 @@ class HTMLGenerator(html.parser.HTMLParser):
             mo = re.search(tag_end, full_tag)
             ws_dict[ENDTAG] = mo.group()
 
-            # XXX We are deeply coupling to our generator here, as we change the
-            # signature wrt the base class.
+            # XXX We are deeply coupling to our generator here, as we change
+            # the signature wrt the base class.
             try:
                 self._cont_handler.startElement(
                     tag, raw_attrs, ws_dict, is_short_tag=is_short_tag,
