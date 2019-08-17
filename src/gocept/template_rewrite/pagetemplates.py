@@ -1,5 +1,6 @@
 import functools
 from xml.sax import handler, saxutils
+import lib2to3.pgen2.parse
 import collections
 import html.parser
 import io
@@ -24,23 +25,6 @@ class PTParseError(SyntaxError):
     """Error while parsing a page template.
 
     Should be raised by rewrite_action on error."""
-    def __init__(self, lineno=None, tag=None, filename=None):
-        """ Initialize with all info that is available at the given level.
-        Sometimes the error is caught at a higher level, supplanted with
-        additional info and raised again.
-        """
-        self.lineno = lineno
-        self.tag = tag
-        self.filename = filename
-
-    def print(self):
-        """Give a description of the error"""
-        log.error('Parsing error in %s:%d \n\t%s',
-                  self.filename or '?',
-                  self.lineno or '?',
-                  self.tag or '?',
-                  exc_info=False
-                  )
 
 
 class PythonExpressionFilter(saxutils.XMLFilterBase):
@@ -106,10 +90,8 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
                     rewrite_expression = self._rewrite_single_expression
 
                 if value is None:
-                    raise PTParseError(
-                            filename=self.filename,
-                            lineno=lineno
-                            )
+                    raise PTParseError
+
                 value = value.replace(';;', DOUBLE_SEMICOLON_REPLACEMENT)
 
                 tag = join_element(name, attrs, ws_dict)
@@ -149,6 +131,7 @@ class HTMLGenerator(html.parser.HTMLParser):
         full_tag = self.get_starttag_text()
         ws_dict = {}
         raw_attrs = []
+        parse_error = False
         for attr, value in attrs:
             # We include the '="' to ensure that we get the attribute instead
             # of another string in the tag.
@@ -171,33 +154,34 @@ class HTMLGenerator(html.parser.HTMLParser):
                 mo_value = re.search(
                     value_pattern.format(attr), full_tag, flags=re.IGNORECASE)
                 if mo_value is None:
-                    raise PTParseError(
-                            lineno=self.getpos()[0],
-                            tag=full_tag
-                            )
+                    parse_error = True
+                    break
                 raw_value = mo_value.group(1)
 
             if mo is None:
-                raise PTParseError(
-                    lineno=self.getpos()[0],
-                    tag=full_tag
-                )
+                parse_error = True
+                break
             ws_dict[attr] = mo.group(1)
             raw_attrs.append((attr, raw_value))
 
-        mo = re.search(tag_end, full_tag)
-        ws_dict[ENDTAG] = mo.group()
+        if not parse_error:
+            mo = re.search(tag_end, full_tag)
+            ws_dict[ENDTAG] = mo.group()
 
-        # XXX We are deeply coupling to our generator here, as we change the
-        # signature wrt the base class.
-        try:
-            self._cont_handler.startElement(
-                tag, raw_attrs, ws_dict, is_short_tag=is_short_tag,
-                lineno=self.getpos()[0])
-        except PTParseError as err:
-            if err.tag is None:
-                err.tag = full_tag
-            raise
+            # XXX We are deeply coupling to our generator here, as we change the
+            # signature wrt the base class.
+            try:
+                self._cont_handler.startElement(
+                    tag, raw_attrs, ws_dict, is_short_tag=is_short_tag,
+                    lineno=self.getpos()[0])
+            except (PTParseError, lib2to3.pgen2.parse.ParseError):
+                parse_error = True
+
+        if parse_error:
+            self.parse_errors.append({
+                'lineno': self.getpos()[0],
+                'tag': full_tag,
+            })
 
     def _write_raw(self, data):
         # We use `ignorableWhitespace` here as it does no escaping.
@@ -292,17 +276,22 @@ class PTParserRewriter(object):
         """
         output_gen = CustomXMLGenerator(self.output, encoding='utf-8')
         parser = HTMLGenerator(convert_charrefs=False)
+        parser.parse_errors = []
         filter = PythonExpressionFilter(
             parser, self.rewrite_action, filename=self.filename)
         filter.setContentHandler(output_gen)
         filter.setErrorHandler(handler.ErrorHandler())
-        try:
-            filter.parse(input_)
-        except PTParseError as err:
-            if err.filename is None:
-                # add information that is sometimes not known deep down
-                err.filename = self.filename
-            raise
+        filter.parse(input_)
+        for err in parser.parse_errors:
+            log.error(
+                'Parsing error in %s:%d \n\t%s',
+                self.filename,
+                err['lineno'],
+                err['tag'],
+                exc_info=False,
+            )
+        if len(parser.parse_errors):
+            raise PTParseError
 
         self.output.seek(0)
         return self.output.read()
