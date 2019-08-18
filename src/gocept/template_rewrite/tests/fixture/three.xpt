@@ -1,0 +1,1 @@
+<span tal:content="python:a.has_key('b')" />
