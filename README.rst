@@ -33,6 +33,7 @@ Caveats
   is no longer available in Python 3.
 
 - This tool converts Python 2 to Python 3 - that means the code may not be
-compatible with Python 2 any more.
+  compatible with Python 2 any more. For these edge cases manual changes are required to make it
+  compatible with both versions.
 
 .. _actual specification: http://www.htmlhelp.com/reference/wilbur/misc/comment.html
