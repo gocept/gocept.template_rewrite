@@ -27,7 +27,7 @@ Caveats
 =======
 
 - During rewrite double hyphens within HTML-comments are removed as the Chameleon
-engine in Zope 4 (and the `actual specification`_) is very strict about it.
+   engine in Zope 4 (and the `actual specification`_) is very strict about it.
 
 - The underlying lib2to3 does not take into account, that the `cmp` function
 is no longer available in Python 3.
