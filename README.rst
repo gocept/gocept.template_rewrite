@@ -8,7 +8,7 @@ gocept.template_rewrite
 .. image:: https://coveralls.io/repos/github/gocept/gocept.template_rewrite/badge.svg
     :target: https://coveralls.io/github/gocept/gocept.template_rewrite
 
-A tool to rewrite parts of template files (DTML, ZPT).
+A tool to rewrite parts of template files (DTML, ZPT and XPT).
 
 The initial use case is to have a pluggable system to convert Python 2
 expressions in templates to Python 3.
