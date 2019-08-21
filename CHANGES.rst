@@ -5,4 +5,5 @@ Change log for gocept.template_rewrite
 0.1 (unreleased)
 ================
 
-initial release
+- File discovery now also includes TrustedFSPageTemplate files, which
+  are registered with the file ending `.xpt`.
