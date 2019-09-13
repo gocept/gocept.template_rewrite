@@ -71,7 +71,7 @@ class FileHandler(object):
             self.zpt_files.append(path)
         elif path.suffix in ('.dtml', '.sql'):
             self.dtml_files.append(path)
-        elif path.suffix in ('.pt', '.html'):
+        elif path.suffix in ('.pt', '.xpt', '.html'):
             self.zpt_files.append(path)
 
     def _process_file(self, path, rewriter):
