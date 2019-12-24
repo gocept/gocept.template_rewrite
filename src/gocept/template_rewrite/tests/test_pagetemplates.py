@@ -1,6 +1,7 @@
 import logging
 import pytest
-from gocept.template_rewrite.pagetemplates import PTParserRewriter
+from gocept.template_rewrite.pagetemplates import PTParserRewriter, \
+    PTParseError
 from gocept.template_rewrite.lib2to3 import rewrite_using_2to3
 
 
@@ -180,7 +181,8 @@ def test_pagetemplates__PTParserRewriter____call____5(
 
 
 def test_pagetemplates__PTParserRewriter____call____6(caplog):
-    """It does not break when reaching a parsing error."""
+    """It raises an error when reaching a parsing error, but provides
+    information about it."""
     broken = """\
 <span> everything is fine here </span>
 <p tal:attributes="color python: a
@@ -188,13 +190,15 @@ def test_pagetemplates__PTParserRewriter____call____6(caplog):
 <span> everything is fine here again </span>
 <p tal:attributes="color python: or or"></p>
 """
-    PTParserRewriter(broken, rewrite_using_2to3, filename='broken.pt')()
+    with pytest.raises(PTParseError):
+        assert PTParserRewriter(broken, rewrite_using_2to3,
+                                filename='broken.pt')()
     assert [
-        ('gocept.template_rewrite.lib2to3', logging.ERROR,
+        ('gocept.template_rewrite.pagetemplates', logging.ERROR,
          'Parsing error in broken.pt:2 \n\t'
          '<p tal:attributes="color python: a\n'
          '                                  or b.has_key(\'test\')">'),
-        ('gocept.template_rewrite.lib2to3', logging.ERROR,
+        ('gocept.template_rewrite.pagetemplates', logging.ERROR,
          'Parsing error in broken.pt:5 \n\t'
          '<p tal:attributes="color python: or or">'),
     ] == caplog.record_tuples

@@ -153,9 +153,14 @@ class HTMLGenerator(html.parser.HTMLParser):
                 # we have to parse the tag for the raw value here again.
                 mo_value = re.search(
                     value_pattern.format(attr), full_tag, flags=re.IGNORECASE)
-                if mo_value is None:
-                    parse_error = True
-                    break
+
+                # Not sure what this intended to catch and what test case to
+                # write for it, so I comment it out until it becomes relevant
+                # again.
+
+                # if mo_value is None:
+                #     parse_error = True
+                #     break
                 raw_value = mo_value.group(1)
 
             if mo is None:

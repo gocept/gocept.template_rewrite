@@ -80,7 +80,7 @@ class FileHandler(object):
 
     def _process_file(self, path, rewriter):
         """Process one file."""
-        log.warn('Processing %s', path)
+        log.warning('Processing %s', path)
         try:
             rw = rewriter(
                 path.read_text(), self.rewrite_action, filename=str(path))
