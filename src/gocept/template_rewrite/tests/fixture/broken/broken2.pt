@@ -1,0 +1,3 @@
+<div class="something" tal:content="python:invalid syntax"></div>
+
+<span tal:replace= "python:1"></span>

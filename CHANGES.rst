@@ -5,6 +5,14 @@ Change log for gocept.template_rewrite
 0.1 (unreleased)
 ================
 
+- Print exact location of error in case of problems parsing Page Templates.
+
+- Add parameter `--collect-errors` that continues to parse all given files and
+  prints all found parsing errors but exits with an error and does not replace
+  any files if an error was found. This replaces the argument
+  `--only-show-errors` present in earlier versions. This allows to create a
+  full list of errors to be fixed before a rewrite is possible.
+
 - Add notes about more caveats.
 
 - File discovery now also includes TrustedFSPageTemplate files, which

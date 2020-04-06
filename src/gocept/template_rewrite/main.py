@@ -1,6 +1,7 @@
 from gocept.template_rewrite.dtml import DTMLRegexRewriter
 from gocept.template_rewrite.lib2to3 import rewrite_using_2to3
 from gocept.template_rewrite.pagetemplates import PTParserRewriter
+from gocept.template_rewrite.pagetemplates import PTParseError
 import argparse
 import logging
 import os
@@ -19,9 +20,9 @@ parser.add_argument('paths', type=str, nargs='+', metavar='path',
                     'directories containing such files')
 parser.add_argument('--keep-files', action='store_true',
                     help='keep the original files, create *.out files instead')
-parser.add_argument('--only-check-syntax', action='store_true',
-                    help='Do not convert but only report syntax errors in'
-                    ' the sources')
+parser.add_argument('--collect-errors', action='store_true',
+                    help='If encountering an error, continue to collect all'
+                    ' errors, print them out and only exit at the end')
 parser.add_argument('--force', choices=['pt', 'dtml'], default=None,
                     help='Treat all files as PageTemplate (pt) resp.'
                     'DocumentTemplate (dtml).')
@@ -38,14 +39,18 @@ class FileHandler(object):
         self.output_files = []
         self.paths = paths
         self.keep_files = settings.keep_files
-        self.only_check_syntax = settings.only_check_syntax
+        self.collect_errors = settings.collect_errors
         self.force_type = settings.force
+        self.errors = False
 
     def __call__(self):
         for path in self.paths:
             self.collect_files(pathlib.Path(path))
         self.process_files()
-        if not self.keep_files and not self.only_check_syntax:
+        if self.errors:
+            log.error('Encountered errors, skipping file replacement.')
+            return
+        if not self.keep_files:
             self.replace_files()
 
     def rewrite_action(self, input_string, *args, **kwargs):
@@ -82,11 +87,17 @@ class FileHandler(object):
         except UnicodeDecodeError:  # pragma: no cover
             log.error('Error', exc_info=True)
         else:
-            result = rw()
-            if not self.only_check_syntax:
-                file_out = pathlib.Path(str(path) + '.out')
-                file_out.write_text(result, encoding='utf-8')
-                self.output_files.append(file_out)
+            try:
+                result = rw()
+            except PTParseError:
+                self.errors = True
+                if self.collect_errors:
+                    return
+                raise
+
+            file_out = pathlib.Path(str(path) + '.out')
+            file_out.write_text(result, encoding='utf-8')
+            self.output_files.append(file_out)
 
     def process_files(self):
         """Process all collected files."""
@@ -110,3 +121,4 @@ def main(args=None):
         if args.debug:
             pdb.post_mortem()
         raise
+    return 1 if fh.errors else 0

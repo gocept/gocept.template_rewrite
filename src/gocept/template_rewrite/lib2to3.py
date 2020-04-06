@@ -1,4 +1,3 @@
-from gocept.template_rewrite.pagetemplates import PTParseError
 import lib2to3.pgen2.parse
 import lib2to3.refactor
 import logging
@@ -20,12 +19,7 @@ def rewrite_using_2to3(src, lineno, tag, filename):
     without being and iterator.
     """
     consolidated_src = src.lstrip()
-    try:
-        tree = tool.refactor_string(consolidated_src + '\n', "<stdin>")
-    except lib2to3.pgen2.parse.ParseError:
-        log.error('Parsing error in %s:%d \n\t%s',
-                  filename, lineno, tag, exc_info=False)
-        raise PTParseError
+    tree = tool.refactor_string(consolidated_src + '\n', "<stdin>")
     result = str(tree)[:-1]
     if result == consolidated_src:
         return src  # include leading white space
