@@ -1,0 +1,8 @@
+include .coveragerc
+include pytest.ini
+include tox.ini
+recursive-include src *.dtml
+recursive-include src *.html
+recursive-include src *.pt
+recursive-include src *.txt
+recursive-include src *.xpt
