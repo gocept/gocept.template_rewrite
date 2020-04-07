@@ -2,6 +2,12 @@
 Change log for gocept.template_rewrite
 ======================================
 
+1.1 (unreleased)
+================
+
+- Nothing changed yet.
+
+
 1.0 (2020-04-07)
 ================
 
