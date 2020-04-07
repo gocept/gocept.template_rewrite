@@ -2,7 +2,7 @@
 Change log for gocept.template_rewrite
 ======================================
 
-0.1 (unreleased)
+1.0 (2020-04-07)
 ================
 
 - Print exact location of error in case of problems parsing Page Templates.
