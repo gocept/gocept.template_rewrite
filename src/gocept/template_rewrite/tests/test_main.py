@@ -10,7 +10,7 @@ FIXTURE_DIR = pkg_resources.resource_filename(
     'gocept.template_rewrite.tests', 'fixture')
 
 
-@pytest.fixture('function')
+@pytest.fixture(scope='function')
 def files(tmpdir):
     """Create a copy of the fixture directory in a temporary directory."""
     dir = str(tmpdir.join('fixture'))
