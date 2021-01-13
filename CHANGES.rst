@@ -7,6 +7,8 @@ Change log for gocept.template_rewrite
 
 - Ensure compatibility with ``pytest >= 6.0``.
 
+- Use GHA as CI system.
+
 
 1.0 (2020-04-07)
 ================
