@@ -2,8 +2,15 @@
 gocept.template_rewrite
 =======================
 
-.. image:: https://travis-ci.org/gocept/gocept.template_rewrite.svg?branch=master
-    :target: https://travis-ci.org/gocept/gocept.template_rewrite
+
+.. image:: https://img.shields.io/pypi/v/gocept.template_rewrite.svg
+    :target: https://pypi.org/project/gocept.template_rewrite/
+
+.. image:: https://img.shields.io/pypi/pyversions/gocept.template_rewrite.svg
+    :target: https://pypi.org/project/gocept.template_rewrite/
+
+.. image:: https://github.com/gocept/gocept.template_rewrite/workflows/tests/badge.svg
+    :target: https://github.com/gocept/gocept.template_rewrite/actions?query=workflow%3Atests
 
 .. image:: https://coveralls.io/repos/github/gocept/gocept.template_rewrite/badge.svg
     :target: https://coveralls.io/github/gocept/gocept.template_rewrite
