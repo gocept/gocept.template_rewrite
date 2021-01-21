@@ -1,10 +1,12 @@
 from ..dtml import DTMLRegexRewriter
 from ..main import main
-from ..pagetemplates import PTParserRewriter, PTParseError
+from ..pagetemplates import PTParseError
+from ..pagetemplates import PTParserRewriter
 import pathlib
 import pkg_resources
 import pytest
 import shutil
+
 
 FIXTURE_DIR = pkg_resources.resource_filename(
     'gocept.template_rewrite.tests', 'fixture')

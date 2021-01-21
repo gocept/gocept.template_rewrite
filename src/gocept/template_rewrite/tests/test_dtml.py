@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
-import pytest
 import gocept.template_rewrite.dtml
+import pytest
+
 
 DTML_VAR_EXPRESSION = """
 //  Use some dthml-var without expression
