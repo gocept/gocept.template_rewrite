@@ -1,8 +1,8 @@
+from gocept.template_rewrite.lib2to3 import rewrite_using_2to3
+from gocept.template_rewrite.pagetemplates import PTParseError
+from gocept.template_rewrite.pagetemplates import PTParserRewriter
 import logging
 import pytest
-from gocept.template_rewrite.pagetemplates import PTParserRewriter, \
-    PTParseError
-from gocept.template_rewrite.lib2to3 import rewrite_using_2to3
 
 
 @pytest.fixture(scope='module', autouse=True)

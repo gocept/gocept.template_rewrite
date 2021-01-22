@@ -1,9 +1,10 @@
-import functools
-from xml.sax import handler, saxutils
-import lib2to3.pgen2.parse
+from xml.sax import handler
+from xml.sax import saxutils
 import collections
+import functools
 import html.parser
 import io
+import lib2to3.pgen2.parse
 import logging
 import re
 

@@ -1,7 +1,7 @@
 from gocept.template_rewrite.dtml import DTMLRegexRewriter
 from gocept.template_rewrite.lib2to3 import rewrite_using_2to3
-from gocept.template_rewrite.pagetemplates import PTParserRewriter
 from gocept.template_rewrite.pagetemplates import PTParseError
+from gocept.template_rewrite.pagetemplates import PTParserRewriter
 import argparse
 import logging
 import os
