@@ -118,6 +118,7 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
 
 leading_whitespace = r'(\s+{})'
 value_pattern = '''\\s+{}="([^"]*)"'''
+value_pattern_single = "\\s+{}='([^']*)'"
 # This tag end matches whitespaces and shorttag
 tag_end = r'(\s*/?>$)'
 
@@ -140,13 +141,24 @@ class HTMLGenerator(html.parser.HTMLParser):
                 leading_whitespace.format(attr) + '(?==")', full_tag,
                 flags=re.IGNORECASE)
             if not mo:
-                # We seem to have a attribute without `=` so we ensure
-                # whitespaces around it and hope that the will not be another
-                # occurrence of it.
+                # just for good measure, check if this is an attribute with single quotes
                 mo = re.search(
-                    leading_whitespace.format(attr) + r'(\s*)', full_tag,
-                    flags=re.IGNORECASE)
-                raw_value = None
+                    leading_whitespace.format(attr) + "(?==')", full_tag,
+                    flags=re.IGNORECASE
+                )
+                if mo:
+                    mo_value = re.search(
+                        value_pattern_single.format(attr), full_tag, flags=re.IGNORECASE)
+
+                    raw_value = mo_value.group(1)
+                else:
+                    # We seem to have a attribute without `=` so we ensure
+                    # whitespaces around it and hope that the will not be another
+                    # occurrence of it.
+                    mo = re.search(
+                        leading_whitespace.format(attr) + r'(\s*)', full_tag,
+                        flags=re.IGNORECASE)
+                    raw_value = None
             else:
                 # if we have a value it was already unescaped by the base
                 # class, but we want the raw value as this is one way to
