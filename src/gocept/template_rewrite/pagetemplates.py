@@ -141,20 +141,22 @@ class HTMLGenerator(html.parser.HTMLParser):
                 leading_whitespace.format(attr) + '(?==")', full_tag,
                 flags=re.IGNORECASE)
             if not mo:
-                # just for good measure, check if this is an attribute with single quotes
+                # check if this is an attribute with single quotes
                 mo = re.search(
                     leading_whitespace.format(attr) + "(?==')", full_tag,
                     flags=re.IGNORECASE
                 )
                 if mo:
                     mo_value = re.search(
-                        value_pattern_single.format(attr), full_tag, flags=re.IGNORECASE)
+                        value_pattern_single.format(attr),
+                        full_tag, flags=re.IGNORECASE
+                    )
 
                     raw_value = mo_value.group(1)
                 else:
                     # We seem to have a attribute without `=` so we ensure
-                    # whitespaces around it and hope that the will not be another
-                    # occurrence of it.
+                    # whitespaces around it and hope that the will not be
+                    # another occurrence of it.
                     mo = re.search(
                         leading_whitespace.format(attr) + r'(\s*)', full_tag,
                         flags=re.IGNORECASE)
