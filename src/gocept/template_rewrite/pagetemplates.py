@@ -127,18 +127,19 @@ class HTMLGenerator(html.parser.HTMLParser):
         ws_dict = {}
         raw_attrs = []
         parse_error = False
+        # Pattern that selects both the key with preceding whitespaces and the
+        # raw value
+        patterns = [
+            r'(\s+{})="([^"]*)"',  # Double quotes
+            r"(\s+{})='([^']*)'",  # Single quotes
+            r"(\s+{})\b",  # Singleton, no value
+        ]
         for attr, value in attrs:
-            # Double quotes
-            mo = re.search(r'(\s+{})="([^"]*)"'.format(attr), full_tag,
-                           flags=re.IGNORECASE)
-            if not mo:
-                # Single quotes
-                mo = re.search(r"(\s+{})='([^']*)'".format(attr), full_tag,
+            for pattern in patterns:
+                mo = re.search(pattern.format(attr), full_tag,
                                flags=re.IGNORECASE)
-            if not mo:
-                # No value
-                mo = re.search(r"(\s+{})\b".format(attr), full_tag,
-                             flags=re.IGNORECASE)
+                if mo:
+                    break
 
             if not mo:
                 parse_error = True
