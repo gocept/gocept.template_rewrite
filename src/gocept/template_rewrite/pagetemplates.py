@@ -140,8 +140,8 @@ class HTMLGenerator(html.parser.HTMLParser):
                                flags=re.IGNORECASE)
                 if mo:
                     break
-
-            if not mo:
+            else:
+                # No pattern matches
                 parse_error = True
                 break
 
