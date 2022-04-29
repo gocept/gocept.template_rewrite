@@ -116,12 +116,6 @@ class PythonExpressionFilter(saxutils.XMLFilterBase):
         self._parent.close()
 
 
-leading_whitespace = r'(\s+{})'
-value_pattern = '''\\s+{}="([^"]*)"'''
-# This tag end matches whitespaces and shorttag
-tag_end = r'(\s*/?>$)'
-
-
 class HTMLGenerator(html.parser.HTMLParser):
     """A HTML parser which also generates a html file."""
 
@@ -133,45 +127,34 @@ class HTMLGenerator(html.parser.HTMLParser):
         ws_dict = {}
         raw_attrs = []
         parse_error = False
+        # Pattern that selects both the key with preceding whitespaces and the
+        # raw value
+        patterns = [
+            r'(\s+{})="([^"]*)"',  # Double quotes
+            r"(\s+{})='([^']*)'",  # Single quotes
+            r"(\s+{})\b",  # Singleton, no value
+        ]
         for attr, value in attrs:
-            # We include the '="' to ensure that we get the attribute instead
-            # of another string in the tag.
-            mo = re.search(
-                leading_whitespace.format(attr) + '(?==")', full_tag,
-                flags=re.IGNORECASE)
-            if not mo:
-                # We seem to have a attribute without `=` so we ensure
-                # whitespaces around it and hope that the will not be another
-                # occurrence of it.
-                mo = re.search(
-                    leading_whitespace.format(attr) + r'(\s*)', full_tag,
-                    flags=re.IGNORECASE)
-                raw_value = None
+            for pattern in patterns:
+                mo = re.search(pattern.format(attr), full_tag,
+                               flags=re.IGNORECASE)
+                if mo:
+                    break
             else:
-                # if we have a value it was already unescaped by the base
-                # class, but we want the raw value as this is one way to
-                # preserve `&` and `&amp;` in one string at the same time. So
-                # we have to parse the tag for the raw value here again.
-                mo_value = re.search(
-                    value_pattern.format(attr), full_tag, flags=re.IGNORECASE)
-
-                # Not sure what this intended to catch and what test case to
-                # write for it, so I comment it out until it becomes relevant
-                # again.
-
-                # if mo_value is None:
-                #     parse_error = True
-                #     break
-                raw_value = mo_value.group(1)
-
-            if mo is None:
+                # No pattern matches
                 parse_error = True
                 break
+
+            # The value is already unescaped, but we want the raw value as this
+            # is the only way to preserve both `&` and `&amp;` in one string at
+            # the same time.
+            raw_value = mo.group(2) if len(mo.groups()) == 2 else None
             ws_dict[attr] = mo.group(1)
             raw_attrs.append((attr, raw_value))
 
         if not parse_error:
-            mo = re.search(tag_end, full_tag)
+            # Find end tag matching whitespaces and shorttag
+            mo = re.search(r'(\s*/?>$)', full_tag)
             ws_dict[ENDTAG] = mo.group()
 
             # XXX We are deeply coupling to our generator here, as we change

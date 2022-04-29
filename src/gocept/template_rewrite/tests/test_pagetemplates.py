@@ -30,6 +30,8 @@ def rewriter():
      '<!-- Comment with triple hyphen - in the middle -->'),
     ('<!-- Comment with quadruple hyphen ---- in the middle -->',
      '<!-- Comment with quadruple hyphen  in the middle -->'),
+    # Invalid single-quotes get correctly converted to double-quotes
+    ('<p class=\'test\'></p>', '<p class="test"></p>'),
 ])
 def test_pagetemplates__PTParserRewriter____call____1(
         input, expected):
