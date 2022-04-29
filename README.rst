@@ -20,7 +20,7 @@ A tool to rewrite parts of template files (DTML, ZPT and XPT).
 The initial use case is to have a pluggable system to convert Python 2
 expressions in templates to Python 3.
 
-This package runs on Python 3.6 up to 3.8.
+This package runs on Python 3.6 up to 3.10.
 
 
 Requirements
