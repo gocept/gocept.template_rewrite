@@ -2,7 +2,7 @@
 Change log for gocept.template_rewrite
 ======================================
 
-1.1 (unreleased)
+1.1 (2022-04-29)
 ================
 
 - Convert single quotes used for HTML attributes into double quotes.
