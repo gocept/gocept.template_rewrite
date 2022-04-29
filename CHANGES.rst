@@ -5,6 +5,9 @@ Change log for gocept.template_rewrite
 1.1 (unreleased)
 ================
 
+- Convert single quotes used for HTML attributes into double quotes.
+  (`#25 <https://github.com/gocept/gocept.template_rewrite/pull/25>`_) 
+
 - Ensure compatibility with ``pytest >= 6.0``.
 
 - Use GHA as CI system.
