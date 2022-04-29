@@ -6,7 +6,9 @@ Change log for gocept.template_rewrite
 ================
 
 - Convert single quotes used for HTML attributes into double quotes.
-  (`#25 <https://github.com/gocept/gocept.template_rewrite/pull/25>`_) 
+  (`#25 <https://github.com/gocept/gocept.template_rewrite/pull/25>`_)
+
+- Add support for Python 3.9 and 3.10.
 
 - Ensure compatibility with ``pytest >= 6.0``.
 
