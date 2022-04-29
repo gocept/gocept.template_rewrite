@@ -10,7 +10,7 @@ import glob
 
 setup(
     name='gocept.template_rewrite',
-    version='1.1',
+    version='1.2.dev0',
 
     python_requires='>=3.6, <4',
     install_requires=[
