@@ -3,7 +3,7 @@ gocept.template_rewrite
 =======================
 
 .. caution::
-  This is package is archived as gocept does maintain it anymore. If you
+  This is package is archived as gocept does not maintain it anymore. If you
   are interested in working with it, please contact mail@gocept.com or the
   contributors to get the respective permissions.
 
