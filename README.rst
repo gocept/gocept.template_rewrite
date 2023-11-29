@@ -2,6 +2,11 @@
 gocept.template_rewrite
 =======================
 
+.. caution::
+  This is package is archived as gocept does maintain it anymore. If you
+  are interested in working with it, please contact mail@gocept.com or the
+  contributors to get the respective permissions.
+
 
 .. image:: https://img.shields.io/pypi/v/gocept.template_rewrite.svg
     :target: https://pypi.org/project/gocept.template_rewrite/
